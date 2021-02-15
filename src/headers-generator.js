@@ -3,6 +3,7 @@
  * @param {string} name - One of "chrome", "firefox", "safari", "edge" for now.
  * @param {number} minVersion - Minimal version of browser used.
  * @param {number} maxVersion - Maximal version of browser used.
+ * @param {string} httpVersion - Either 1 or 2.
  */
 /**
  * @typedef HeadersGeneratorOptions
@@ -10,6 +11,7 @@
  * @param {Array<string>} browserList - Browser definition based on the https://www.npmjs.com/package/browserslist.
  * @param {Array<string>} devices - List of devices to generate the headers for. One of "desktop", "mobile".
  * @param {Array<string>} locales - List of languages to include in the `Accept-Language` request header.
+ * @param {string} httpVersion - http version to be used to generate headers. http 1 and http 2 sends different header sets.
  */
 
 /**
