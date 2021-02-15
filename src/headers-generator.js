@@ -8,6 +8,7 @@
 /**
  * @typedef HeadersGeneratorOptions
  * @param {Array<Browser>} browsers - List of Browsers to generate the headers for.
+ * @param {Array<string>} operatingSystems - List of operating systems the headers for.
  * @param {Array<string>} browserList - Browser definition based on the https://www.npmjs.com/package/browserslist.
  * @param {Array<string>} devices - List of devices to generate the headers for. One of "desktop", "mobile".
  * @param {Array<string>} locales - List of languages to include in the `Accept-Language` request header.
