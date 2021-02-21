@@ -3,7 +3,7 @@
  * @param {string} name - One of "chrome", "firefox", "safari", "edge" for now.
  * @param {number} minVersion - Minimal version of browser used.
  * @param {number} maxVersion - Maximal version of browser used.
- * @param {string} httpVersion - Either 1 or 2.
+ * @param {string} httpVersion - Either 1 or 2. If none specified the global `httpVersion` is used.
  */
 /**
  * @typedef HeadersGeneratorOptions
