@@ -13,7 +13,8 @@
  * @param {Array<string>} browserList - Browser definition based on the https://www.npmjs.com/package/browserslist.
  * @param {Array<string>} devices - List of devices to generate the headers for. One of "desktop", "mobile".
  * @param {Array<string>} locales - List of languages to include in the `Accept-Language` request header.
- * @param {string} httpVersion - http version to be used to generate headers. http 1 and http 2 sends different header sets.
+ * @param {string} httpVersion - Http version to be used to generate headers. http 1 and http 2 sends different header sets.
+ * @param {string} strategies - Strategies for generating headers - used for simplifying the configuration. For example: "modern-browsers".
  */
 
 /**
@@ -26,15 +27,20 @@ class HeadersGenerator {
     constructor(options = {}) {
         const {
             browsers,
-            locales,
+            operatingSystems,
+            browserList,
             devices,
+            locales,
+            httpVersion,
             strategies,
         } = options;
 
         this.browsers = browsers;
-        this.locales = locales;
+        this.operatingSystems = operatingSystems;
+        this.browserList = browserList;
         this.devices = devices;
         this.locales = locales;
+        this.httpVersion = httpVersion;
         this.strategies = strategies;
     }
 
