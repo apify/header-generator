@@ -2,10 +2,11 @@ const { BayesianNetwork } = require("./bayesian-network.js");
 const dfd = require("danfojs-node");
 const parse = require('csv-parse/lib/sync')
 const  fs = require("fs");
+const path = require("path")
 
-const headerNetworkDefinitionPath = "./headerNetworkDefinition.json";
-const inputNetworkDefinitionPath = "./inputNetworkDefinition.json";
-const browserHelperFilePath = "./browserHelperFile.json";
+const headerNetworkDefinitionPath = path.join(__dirname, "./headerNetworkDefinition.json");
+const inputNetworkDefinitionPath = path.join(__dirname, "./inputNetworkDefinition.json");
+const browserHelperFilePath = path.join(__dirname, "./browserHelperFile.json");
 
 const httpVersionNodeName = "*HTTP_VERSION";
 const browserNodeName = "*BROWSER";
