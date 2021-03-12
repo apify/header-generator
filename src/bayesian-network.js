@@ -1,26 +1,9 @@
 const fs = require('fs');
-const dfd = require("danfojs-node");
-
-function _getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
-}
-
-function _getRelativeFrequencies(dataframe, attributeName) {
-    let frequencies = {};
-    const totalCount = dataframe.shape[0];
-    const valueCounts = dataframe[attributeName].value_counts();
-
-    for(const index in valueCounts.index) {
-        frequencies[valueCounts.index[index]] = valueCounts.values[index] / totalCount;
-    }
-
-    return frequencies;
-}
 
 class BayesianNetwork {
 
     constructor(networkDefinitionFilePath) {
-        const networkDefinition = JSON.parse(fs.readFileSync(networkDefinitionFilePath, "utf8"));
+        const networkDefinition = JSON.parse(fs.readFileSync(networkDefinitionFilePath, 'utf8'));
         this.nodesInSamplingOrder = networkDefinition.nodes.map(nodeDefinition => new BayesianNode(nodeDefinition));
         this.nodesByName = {};
         for(const node of this.nodesInSamplingOrder) {
@@ -36,14 +19,6 @@ class BayesianNetwork {
             }
             node.setProbabilitiesAccordingToData(dataframe, possibleParentValues);
         }.bind(this));
-    }
-
-    saveNetworkDefinition(networkDefinitionFilePath) {
-        const network = {
-            nodes: this.nodesInSamplingOrder.map(node => node.nodeDefinition)
-        };
-
-        fs.writeFileSync(networkDefinitionFilePath, JSON.stringify(network));
     }
 
     generateSample(inputValues={}) {
@@ -82,17 +57,6 @@ class BayesianNetwork {
         }
 
         return false;
-    }
-
-    get nonInputNodeNames() {
-        let names = [];
-        for(const node of this.nodesInSamplingOrder) {
-            if(!node.name.startsWith("*")) {
-                names.push(node.name);
-            }
-        }
-
-        return names;
     }
 
 }
@@ -156,48 +120,6 @@ class BayesianNode {
         return this._sampleRandomValueFromPossibilities(validValues, totalProbability, probabilities);
     }
 
-
-    setProbabilitiesAccordingToData(dataframe, possibleParentValues={}) {
-        this.nodeDefinition.possibleValues = dataframe[this.name].unique().values;
-        this.nodeDefinition.conditionalProbabilities = this.recursivelyCalculateConditionalProbabilitiesAccordingToData(dataframe, possibleParentValues, 0);
-    }
-
-    recursivelyCalculateConditionalProbabilitiesAccordingToData(dataframe, possibleParentValues, depth) {
-        let probabilities = {
-            "deeper": {}
-        };
-
-        if(depth < this.parentNames.length) {
-            const currentParentName = this.parentNames[depth];
-            for(const possibleValue of possibleParentValues[currentParentName]) {
-                const skip = !dataframe[currentParentName].unique().values.includes(possibleValue);
-                let filteredDataframe = dataframe;
-                if(!skip) {
-                    filteredDataframe = dataframe.query({
-                        "column": currentParentName,
-                        "is": "==",
-                        "to": possibleValue
-                    })
-                }
-                let nextLevel = this.recursivelyCalculateConditionalProbabilitiesAccordingToData(filteredDataframe, possibleParentValues, depth + 1);
-
-                if(!skip) {
-                    probabilities["deeper"][possibleValue] = nextLevel;
-                } else {
-                    probabilities["skip"] = nextLevel;
-                }
-            }
-        } else {
-            probabilities = _getRelativeFrequencies(dataframe, this.name);
-        }
-
-        return probabilities;
-    }
-
-    toJson() {
-        return JSON.stringify(this.nodeDefinition);
-    }
-
     get name() {
         return this.nodeDefinition.name;
     }
@@ -209,9 +131,8 @@ class BayesianNode {
     get parentNames() {
         return this.nodeDefinition.parentNames;
     }
-
 }
 
 module.exports = {
-    BayesianNetwork
+    BayesianNetwork,
 };

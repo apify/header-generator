@@ -1,8 +1,6 @@
 const { BayesianNetwork } = require("./bayesian-network.js");
-const dfd = require("danfojs-node");
-const parse = require('csv-parse/lib/sync')
 const  fs = require("fs");
-const path = require("path")
+const path = require("path");
 
 const headerNetworkDefinitionPath = path.join(__dirname, "./headerNetworkDefinition.json");
 const inputNetworkDefinitionPath = path.join(__dirname, "./inputNetworkDefinition.json");
@@ -30,6 +28,20 @@ const http1SecFetchAttributes = {
 
 function _getRandomInteger(minimum, maximum) {
     return minimum + Math.floor(Math.random() * (maximum - minimum + 1));
+}
+
+function _shuffleArray(array) {
+    if(array.length > 1) {
+        for(let x = 0; x < 10; x++) {
+            const position1 = _getRandomInteger(0, array.length-1);
+            const position2 = _getRandomInteger(0, array.length-1);
+            const holder = array[position1];
+            array[position1] = array[position2];
+            array[position2] = holder;
+        }
+    }
+
+    return array;
 }
 
 function _browserVersionIsLesserOrEquals(browserVersionL, browserVersionR) {
@@ -158,17 +170,42 @@ class HeadersGenerator {
             secFetchAttributeNames = http1SecFetchAttributes;
         }
 
-        for(let x = 0; x < 10; x++) {
-            let position1 = _getRandomInteger(0, headerOptions.locales.length-1);
-            let position2 = _getRandomInteger(0, headerOptions.locales.length-1);
-            let holder = headerOptions.locales[position1];
-            headerOptions.locales[position1] = headerOptions.locales[position2];
-            headerOptions.locales[position2] = holder;
+        let highLevelLocales = [];
+        let regionalLocales = [];
+        for(const locale of headerOptions.locales) {
+            if(!locale.includes("-")) {
+                highLevelLocales.push();
+            }
         }
 
-        let acceptLanguageFieldValue = headerOptions.locales[0];
-        for(let x = 1; x < headerOptions.locales.length; x++) {
-            acceptLanguageFieldValue += "," + headerOptions.locales[x] + ";" + (1 - x * 0.1);
+        for(const locale of headerOptions.locales) {
+            if(!highLevelLocales.includes(locale)) {
+                let highLevelEquivalentPresent = false;
+                for(let highLevelLocale of highLevelLocales) {
+                    if(locale.includes(highLevelLocale)) {
+                        highLevelEquivalentPresent = true;
+                        break;
+                    }
+                }
+                if(!highLevelEquivalentPresent) highLevelLocales.push(locale);
+            }
+        }
+
+        highLevelLocales = _shuffleArray(highLevelLocales);
+        headerOptions.locales = _shuffleArray(headerOptions.locales);
+        let localesInAddingOrder = [];
+        for(const highLevelLocale of highLevelLocales) {
+            for(const locale of headerOptions.locales) {
+                if(locale.includes(highLevelLocale) && !highLevelLocales.includes(locale)) {
+                    localesInAddingOrder.push(locale);
+                }
+            }
+            localesInAddingOrder.push(highLevelLocale);
+        }
+
+        let acceptLanguageFieldValue = localesInAddingOrder[0];
+        for(let x = 1; x < localesInAddingOrder.length; x++) {
+            acceptLanguageFieldValue += "," + localesInAddingOrder[x] + ";" + (1 - x * 0.1);
         }
 
         generatedSample[acceptLanguageFieldName] = acceptLanguageFieldValue;
@@ -190,97 +227,6 @@ class HeadersGenerator {
         }
 
         return generatedSample;
-    }
-
-    static async prepareFilesForHeaderGenerationFromDataset(datasetPath, definitionFile) {
-        /*
-            Danfo-js can't read CSVs where field values contain a newline right now, the replace was added to deal with
-            issue described in https://github.com/adaltas/node-csv-parse/issues/139
-        */
-        const datasetText = fs.readFileSync(datasetPath, {encoding:'utf8'}).replace(/^\ufeff/, '');
-        const records = parse(datasetText, {
-            columns: true,
-            skip_empty_lines: true
-        });
-
-        for(let x = 0; x < records.length; x++) {
-            records[x]["requestFingerprint/httpVersion"] = "_" + records[x]["requestFingerprint/httpVersion"] + "_";
-            for(const attribute in records[x]) {
-                if(records[x][attribute] == "") {
-                    records[x][attribute] = missingValueDatasetToken;
-                }
-            }
-        }
-
-        let inputGeneratorNetwork = new BayesianNetwork(inputNetworkDefinitionPath);
-        let headerGeneratorNetwork = new BayesianNetwork(headerNetworkDefinitionPath);
-        let desiredHeaderAttributes = headerGeneratorNetwork.nonInputNodeNames;
-        let headers = new dfd.DataFrame(records);
-
-        let mapper = { "requestFingerprint/httpVersion": httpVersionNodeName };
-        for(const attribute of desiredHeaderAttributes) {
-            mapper["requestFingerprint/headers/" + attribute] = attribute;
-        }
-        desiredHeaderAttributes.push(httpVersionNodeName);
-        headers.rename({ mapper: mapper , inplace: true });
-
-        let selectedHeaders = headers.loc({ columns: desiredHeaderAttributes });
-        selectedHeaders.fillna({ values: [ missingValueDatasetToken ], inplace: true })
-        let browsers = [];
-        let operatingSystems = [];
-        let devices = [];
-        let userAgents = selectedHeaders.loc({ columns: ["user-agent", "User-Agent"] });
-        for(const row of userAgents.values) {
-            let userAgent = row[0];
-            if(userAgent == missingValueDatasetToken) {
-                userAgent = row[1];
-            }
-            userAgent = userAgent.toLowerCase();
-
-            let operatingSystem = missingValueDatasetToken;
-            if(/windows/.test(userAgent)) {
-                operatingSystem = "windows";
-            }
-            let device = "desktop";
-            if(/phone|android|mobile/.test(userAgent)) {
-                device = "mobile";
-                if(/iphone|mac/.test(userAgent)) {
-                    operatingSystem = "ios";
-                } else if(/android/.test(userAgent)) {
-                    operatingSystem = "android";
-                }
-            } else {
-                if(/linux/.test(userAgent)) {
-                    operatingSystem = "linux";
-                } else if(/mac/.test(userAgent)) {
-                    operatingSystem = "macos";
-                }
-            }
-
-            let browser = missingValueDatasetToken;
-            let matches = userAgent.match(/(firefox|chrome|safari)\/([0-9.]*)/gi);
-            if(matches && !(/OPR\/[0-9.]*/.test(userAgent))) {
-                browser = matches[0];
-            }
-
-            browsers.push(browser);
-            operatingSystems.push(operatingSystem);
-            devices.push(device);
-        }
-
-
-        selectedHeaders.addColumn({ "column": browserNodeName, "value": browsers });
-        selectedHeaders.addColumn({ "column": operatingSystemNodeName, "value": operatingSystems });
-        selectedHeaders.addColumn({ "column": deviceNodeName, "value": devices });
-
-        await headerGeneratorNetwork.setProbabilitiesAccordingToData(selectedHeaders);
-        await inputGeneratorNetwork.setProbabilitiesAccordingToData(selectedHeaders);
-
-        headerGeneratorNetwork.saveNetworkDefinition(headerNetworkDefinitionPath);
-        inputGeneratorNetwork.saveNetworkDefinition(inputNetworkDefinitionPath);
-
-        const uniqueBrowsers = await selectedHeaders[browserNodeName].unique().values;
-        fs.writeFileSync(browserHelperFilePath, JSON.stringify(uniqueBrowsers));
     }
 
 }
