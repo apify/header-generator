@@ -1,3 +1,3 @@
-const HeadersGenerator = require('./src/headers-generator');
+const HeaderGenerator = require('./src/header-generator');
 
-module.exports = HeadersGenerator;
+module.exports = HeaderGenerator;

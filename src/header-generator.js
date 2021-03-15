@@ -71,7 +71,7 @@ function _prepareBrowserObject(browserString) {
  * @param {string} httpVersion - Either 1 or 2. If none specified the global `httpVersion` is used.
  */
 /**
- * @typedef HeadersGeneratorOptions
+ * @typedef HeaderGeneratorOptions
  * @param {Array<Browser>} browsers - List of Browsers to generate the headers for.
  * @param {Array<string>} operatingSystems - List of operating systems the headers for.
  *  “windows” “macos” “linux” “android” “ios”. We don't need more I guess.
@@ -85,9 +85,9 @@ function _prepareBrowserObject(browserString) {
 /**
  * Class generating random browser headers based on input.
  */
-class HeadersGenerator {
+class HeaderGenerator {
     /**
-     * @param {HeadersGeneratorOptions} options
+     * @param {HeaderGeneratorOptions} options
      */
     constructor(options = {}) {
         this.defaultOptions = options;
@@ -107,7 +107,7 @@ class HeadersGenerator {
     }
 
     /**
-     * @param {HeadersGeneratorOptions} options - main options overrides.
+     * @param {HeaderGeneratorOptions} options - main options overrides.
      */
     getHeaders(options) {
         let headerOptions = {...this.defaultOptions, ...options};
@@ -231,4 +231,4 @@ class HeadersGenerator {
 
 }
 
-module.exports = HeadersGenerator;
+module.exports = HeaderGenerator;
