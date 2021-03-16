@@ -27,7 +27,6 @@ const main = async () => {
     });
     const classData = await jsdoc2md.getTemplateData({
         files: [
-            path.join(SRC_DIR, 'bayesian-network.js'),
             path.join(SRC_DIR, 'header-generator.js'),
         ],
     });
