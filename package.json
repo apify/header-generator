@@ -4,7 +4,7 @@
   "description": "NodeJs package for generating browser-like headers.",
   "main": "src/main.js",
   "scripts": {
-    "build-docs": "npm run build-toc && node docs/build_docs.js",
+    "build-docs": "npm run build-toc && node docs/build-docs.js",
     "build-toc": "markdown-toc docs/README.md -i",
     "lint": "./node_modules/.bin/eslint ./src --ext .js,.jsx",
     "lint:fix": "./node_modules/.bin/eslint ./src --ext .js,.jsx --fix",
