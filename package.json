@@ -19,6 +19,9 @@
   "bugs": {
     "url": "https://github.com/apify/header-generator/issues"
   },
+  "dependencies": {
+    "bayesian-network": "git+https://github.com/apify/generative-bayesian-network.git#main",
+  },
   "homepage": "https://github.com/apify/header-generator#readme",
   "devDependencies": {
     "@apify/eslint-config": "^0.1.3",
