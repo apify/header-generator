@@ -20,7 +20,7 @@
     "url": "https://github.com/apify/header-generator/issues"
   },
   "dependencies": {
-    "bayesian-network": "git+https://github.com/apify/generative-bayesian-network.git#main",
+    "bayesian-network": "git+https://github.com/apify/generative-bayesian-network.git#main"
   },
   "homepage": "https://github.com/apify/header-generator#readme",
   "devDependencies": {
