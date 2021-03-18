@@ -26,15 +26,15 @@ const http1SecFetchAttributes = {
     user: 'Sec-Fetch-User',
 };
 
-function _getRandomInteger(minimum, maximum) {
+function getRandomInteger(minimum, maximum) {
     return minimum + Math.floor(Math.random() * (maximum - minimum + 1));
 }
 
-function _shuffleArray(array) {
+function shuffleArray(array) {
     if (array.length > 1) {
         for (let x = 0; x < 10; x++) {
-            const position1 = _getRandomInteger(0, array.length - 1);
-            const position2 = _getRandomInteger(0, array.length - 1);
+            const position1 = getRandomInteger(0, array.length - 1);
+            const position2 = getRandomInteger(0, array.length - 1);
             const holder = array[position1];
             array[position1] = array[position2];
             array[position2] = holder;
@@ -44,16 +44,16 @@ function _shuffleArray(array) {
     return array;
 }
 
-function _browserVersionIsLesserOrEquals(browserVersionL, browserVersionR) {
+function browserVersionIsLesserOrEquals(browserVersionL, browserVersionR) {
     return browserVersionL[0] <= browserVersionR[0];
 }
 
-function _prepareBrowserObject(browserString) {
+function prepareBrowserObject(browserString) {
     const nameVersionSplit = browserString.split('/');
     const versionSplit = nameVersionSplit[1].split('.');
     const preparedVersion = [];
     for (const versionPart of versionSplit) {
-        preparedVersion.push(parseInt(versionPart));
+        preparedVersion.push(parseInt(versionPart, 10));
     }
 
     return {
@@ -94,12 +94,12 @@ class HeaderGenerator {
         const uniqueBrowserStrings = JSON.parse(fs.readFileSync(browserHelperFilePath, { encoding: 'utf8' }));
         this.uniqueBrowsers = [];
         for (const browserString of uniqueBrowserStrings) {
-            if (browserString == missingValueDatasetToken) {
+            if (browserString === missingValueDatasetToken) {
                 this.uniqueBrowsers.push({
                     name: missingValueDatasetToken,
                 });
             } else {
-                this.uniqueBrowsers.push(_prepareBrowserObject(browserString));
+                this.uniqueBrowsers.push(prepareBrowserObject(browserString));
             }
         }
         this.inputGeneratorNetwork = new BayesianNetwork(inputNetworkDefinitionPath);
@@ -139,9 +139,9 @@ class HeaderGenerator {
         const browserOptions = [];
         for (const browser of headerOptions.browsers) {
             for (const browserOption of this.uniqueBrowsers) {
-                if (browser.name == browserOption.name) {
-                    if ((!browser.minVersion || _browserVersionIsLesserOrEquals([browser.minVersion], browserOption.version))
-                        && (!browser.maxVersion || _browserVersionIsLesserOrEquals(browserOption.version, [browser.maxVersion]))) {
+                if (browser.name === browserOption.name) {
+                    if ((!browser.minVersion || browserVersionIsLesserOrEquals([browser.minVersion], browserOption.version))
+                        && (!browser.maxVersion || browserVersionIsLesserOrEquals(browserOption.version, [browser.maxVersion]))) {
                         browserOptions.push(browserOption.completeString);
                     }
                 }
@@ -155,11 +155,13 @@ class HeaderGenerator {
         if (headerOptions.devices) {
             possibleAttributeValues[deviceNodeName] = headerOptions.devices;
         }
-        possibleAttributeValues[httpVersionNodeName] = headerOptions.httpVersion == '2' ? ['_2.0_'] : ['_1.0_', '_1.1_'];
+        possibleAttributeValues[httpVersionNodeName] = headerOptions.httpVersion === '2' ? ['_2.0_'] : ['_1.0_', '_1.1_'];
 
         const inputSample = this.inputGeneratorNetwork.generateSampleWheneverPossible(possibleAttributeValues);
 
-        if (!inputSample) throw 'No headers based on this input can be generated. Please relax or change some of the requirements you specified.';
+        if (!inputSample) {
+            throw new Error('No headers based on this input can be generated. Please relax or change some of the requirements you specified.');
+        }
 
         const generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
 
@@ -171,7 +173,6 @@ class HeaderGenerator {
         }
 
         let highLevelLocales = [];
-        const regionalLocales = [];
         for (const locale of headerOptions.locales) {
             if (!locale.includes('-')) {
                 highLevelLocales.push();
@@ -191,8 +192,8 @@ class HeaderGenerator {
             }
         }
 
-        highLevelLocales = _shuffleArray(highLevelLocales);
-        headerOptions.locales = _shuffleArray(headerOptions.locales);
+        highLevelLocales = shuffleArray(highLevelLocales);
+        headerOptions.locales = shuffleArray(headerOptions.locales);
         const localesInAddingOrder = [];
         for (const highLevelLocale of highLevelLocales) {
             for (const locale of headerOptions.locales) {
@@ -210,8 +211,8 @@ class HeaderGenerator {
 
         generatedSample[acceptLanguageFieldName] = acceptLanguageFieldValue;
 
-        const generatedBrowser = _prepareBrowserObject(generatedSample[browserNodeName]);
-        if (generatedBrowser.name == 'chrome') {
+        const generatedBrowser = prepareBrowserObject(generatedSample[browserNodeName]);
+        if (generatedBrowser.name === 'chrome') {
             if (generatedBrowser.version[0] >= 76) {
                 generatedSample[secFetchAttributeNames.site] = 'same-site';
                 generatedSample[secFetchAttributeNames.mode] = 'navigate';
@@ -222,8 +223,8 @@ class HeaderGenerator {
             }
         }
 
-        for (const attribute in generatedSample) {
-            if (attribute.startsWith('*') || generatedSample[attribute] == missingValueDatasetToken) delete generatedSample[attribute];
+        for (const attribute of Object.keys(generatedSample)) {
+            if (attribute.startsWith('*') || generatedSample[attribute] === missingValueDatasetToken) delete generatedSample[attribute];
         }
 
         return generatedSample;
