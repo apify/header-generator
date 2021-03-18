@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const BayesianNetwork = require('bayesian-network');
+const { BayesianNetwork } = require('bayesian-network');
 
 const headerNetworkDefinitionPath = path.join(__dirname, './headerNetworkDefinition.json');
 const inputNetworkDefinitionPath = path.join(__dirname, './inputNetworkDefinition.json');
