@@ -13,7 +13,7 @@ NodeJs package for generating browser-like headers.
 ## Installation
 Add this repository as an npm dependency and run the npm install command. No further setup is needed after that.
 ## Usage
-To use the generator, you need to create an instance of the HeaderGenerator class which is exported from this package. Constructor of this class accepts a HeaderGeneratorOptions object, which can be used to globally specify what kind of headers you are looking for: 
+To use the generator, you need to create an instance of the `HeaderGenerator` class which is exported from this package. Constructor of this class accepts a `HeaderGeneratorOptions` object, which can be used to globally specify what kind of headers you are looking for: 
 ```js
 const HeaderGenerator = require('header-generator');
 let headerGenerator = new HeaderGenerator({
@@ -29,7 +29,7 @@ let headerGenerator = new HeaderGenerator({
         ]
 });
 ```
-You can then get the headers using the getHeaders method, either with no argument, or with another HeaderGeneratorOptions object, this time specifying the options only for this call (overwriting the global options when in conflict) and using the global options specified beforehands for the unspecified options:
+You can then get the headers using the `getHeaders` method, either with no argument, or with another `HeaderGeneratorOptions` object, this time specifying the options only for this call (overwriting the global options when in conflict) and using the global options specified beforehands for the unspecified options:
 ```js
 let headers = headersGenerator.getHeaders({
         operatingSystems: [
@@ -43,16 +43,17 @@ This method always generates a random realistic set of headers, excluding the re
 A result that can be generated for the usage example above:
 ```json
 {
-    "one": 2,
-    "three": {
-        "point_1": "point_2",
-        "point_3": 3.4
-    },
-    "list": [
-        "one",
-        "two",
-        "three"
-    ]
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36',
+  'accept-encoding': 'gzip, deflate, br',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'sec-ch-ua': '"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
+  'upgrade-insecure-requests': '1',
+  'accept-language': 'en-US,en;0.9',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-user': '?1',
+  'sec-fetch-dest': 'document'
 }
 ```
 ## API Reference
@@ -102,7 +103,7 @@ and their possible overrides provided here.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| name | <code>string</code> | One of "chrome", "firefox", "safari" for now. |
+| name | <code>string</code> | One of "chrome", "firefox" and "safari". |
 | minVersion | <code>number</code> | Minimal version of browser used. |
 | maxVersion | <code>number</code> | Maximal version of browser used. |
 | httpVersion | <code>string</code> | Either 1 or 2. If none specified the global `httpVersion` is used. |
@@ -117,12 +118,10 @@ and their possible overrides provided here.
 | Param | Type | Description |
 | --- | --- | --- |
 | browsers | [<code>Array.&lt;Browser&gt;</code>](#Browser) | List of Browsers to generate the headers for. |
-| operatingSystems | <code>Array.&lt;string&gt;</code> | List of operating systems the headers for.  “windows” “macos” “linux” “android” “ios”. We don't need more I guess. |
-| browserList | <code>Array.&lt;string&gt;</code> | Browser definition based on the https://www.npmjs.com/package/browserslist. |
-| devices | <code>Array.&lt;string&gt;</code> | List of devices to generate the headers for. One of "desktop", "mobile". |
+| operatingSystems | <code>Array.&lt;string&gt;</code> | List of operating systems to generate the headers for.  The options are "windows", "macos", "linux", "android" and "ios". |
+| devices | <code>Array.&lt;string&gt;</code> | List of devices to generate the headers for. Options are "desktop" and "mobile". |
 | locales | <code>Array.&lt;string&gt;</code> | List of at most 10 languages to include in the `Accept-Language` request header. |
-| httpVersion | <code>string</code> | Http version to be used to generate headers. http 1 and http 2 sends different header sets. |
-| strategies | <code>string</code> | Strategies for generating headers - used for simplifying the configuration. For example: "modern-browsers". |
+| httpVersion | <code>string</code> | Http version to be used to generate headers (the headers differ depending on the version).   Can be either 1 or 2. |
 
 
 * * *

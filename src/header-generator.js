@@ -1,13 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 const { BayesianNetwork } = require('bayesian-network');
-const {default: ow} = require('ow');
+const { default: ow } = require('ow');
+
 const headerNetworkDefinitionPath = path.join(__dirname, './headerNetworkDefinition.json');
 const inputNetworkDefinitionPath = path.join(__dirname, './inputNetworkDefinition.json');
 const browserHelperFilePath = path.join(__dirname, './browserHelperFile.json');
 
 const browserHttpNodeName = '*BROWSER_HTTP';
-const browserNodeName = '*BROWSER';
 const operatingSystemNodeName = '*OPERATING_SYSTEM';
 const deviceNodeName = '*DEVICE';
 const missingValueDatasetToken = '*MISSING_VALUE*';
@@ -49,7 +49,7 @@ function browserVersionIsLesserOrEquals(browserVersionL, browserVersionR) {
 }
 
 function prepareHttpBrowserObject(httpBrowserString) {
-    const [ browserString, httpVersion ] = httpBrowserString.split('|');
+    const [browserString, httpVersion] = httpBrowserString.split('|');
     const browserObject = browserString === missingValueDatasetToken ? { name: missingValueDatasetToken } : prepareBrowserObject(browserString);
     return {
         ...browserObject,
@@ -75,6 +75,14 @@ function prepareBrowserObject(browserString) {
     };
 }
 
+const headerGeneratorOptionsShape = {
+    browsers: ow.optional.array,
+    operatingSystems: ow.optional.array,
+    devices: ow.optional.array,
+    locales: ow.optional.array,
+    httpVersion: ow.optional.string,
+};
+
 /**
  * @typedef Browser
  * @param {string} name - One of "chrome", "firefox" and "safari".
@@ -89,7 +97,7 @@ function prepareBrowserObject(browserString) {
  *  The options are "windows", "macos", "linux", "android" and "ios".
  * @param {Array<string>} devices - List of devices to generate the headers for. Options are "desktop" and "mobile".
  * @param {Array<string>} locales - List of at most 10 languages to include in the `Accept-Language` request header.
- * @param {string} httpVersion - Http version to be used to generate headers (the headers differ depending on the version). 
+ * @param {string} httpVersion - Http version to be used to generate headers (the headers differ depending on the version).
  *  Can be either 1 or 2.
  */
 
@@ -97,27 +105,11 @@ function prepareBrowserObject(browserString) {
  * HeaderGenerator randomly generates realistic browser headers based on specified options.
  */
 class HeaderGenerator {
-
-    static browserShape = {
-        name: ow.string,
-        minVersion: ow.optional.number,
-        maxVersion: ow.optional.number,
-        httpVersion: ow.optional.string,
-    }
-
-    static headerGeneratorOptionsShape = {
-        browsers: ow.optional.array,
-        operatingSystems: ow.optional.array,
-        devices: ow.optional.array,
-        locales: ow.optional.array,
-        httpVersion: ow.optional.string,
-    }
-
     /**
      * @param {HeaderGeneratorOptions} options - default header generation options used unless overridden
      */
     constructor(options = {}) {
-        ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(HeaderGenerator.headerGeneratorOptionsShape));
+        ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         this.defaultOptions = options;
         const uniqueBrowserStrings = JSON.parse(fs.readFileSync(browserHelperFilePath, { encoding: 'utf8' }));
         this.uniqueBrowsers = [];
@@ -139,8 +131,8 @@ class HeaderGenerator {
      * and their possible overrides provided here.
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
      */
-    getHeaders(options) {
-        ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(HeaderGenerator.headerGeneratorOptionsShape));
+    getHeaders(options = {}) {
+        ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = { ...this.defaultOptions, ...options };
 
         // Set up defaults
@@ -198,7 +190,7 @@ class HeaderGenerator {
             possibleAttributeValues[deviceNodeName] = headerOptions.devices;
         }
 
-        // Generate a sample of input attributes consistent with the data used to create the definition files if possible. If not, nothing can be generated.
+        // Generate a sample of input attributes consistent with the data used to create the definition files if possible.
         const inputSample = this.inputGeneratorNetwork.generateSampleWheneverPossible(possibleAttributeValues);
 
         if (!inputSample) {
