@@ -1,28 +1,41 @@
 {
-  "name": "header-generator",
-  "version": "0.0.1",
-  "description": "NodeJs package for generating browser-like headers.",
-  "main": "src/main.js",
-  "scripts": {
-    "build-docs": "npm run build-toc && node docs/build-docs.js",
-    "build-toc": "markdown-toc docs/README.md -i",
-    "lint": "./node_modules/.bin/eslint ./src --ext .js,.jsx",
-    "lint:fix": "./node_modules/.bin/eslint ./src --ext .js,.jsx --fix",
-    "test": "jest --maxWorkers=3 --forceExit"
-  },
-  "repository": {
+  "_args": [
+    [
+      "git+https://github.com/apify/header-generator.git#bayesianGenerator",
+      "/home/matthew/Documents/Apify/HeaderGeneration/HeaderGenerationTester"
+    ]
+  ],
+  "_from": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
+  "_id": "header-generator@git+https://github.com/apify/header-generator.git#c5b5f8520d5b383ccee7016201f2bc6f782d7b45",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/header-generator",
+  "_phantomChildren": {},
+  "_requested": {
     "type": "git",
-    "url": "git+https://github.com/apify/header-generator.git"
+    "raw": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
+    "rawSpec": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
+    "saveSpec": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
+    "fetchSpec": "https://github.com/apify/header-generator.git",
+    "gitCommittish": "bayesianGenerator"
   },
-  "author": "Apify",
-  "license": "Apache-2.0",
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git+https://github.com/apify/header-generator.git#c5b5f8520d5b383ccee7016201f2bc6f782d7b45",
+  "_spec": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
+  "_where": "/home/matthew/Documents/Apify/HeaderGeneration/HeaderGenerationTester",
+  "author": {
+    "name": "Apify"
+  },
   "bugs": {
     "url": "https://github.com/apify/header-generator/issues"
   },
   "dependencies": {
-    "bayesian-network": "git+https://github.com/apify/generative-bayesian-network.git#main"
+    "bayesian-network": "git+https://github.com/apify/generative-bayesian-network.git#main",
+    "ow": "^0.23.0"
   },
-  "homepage": "https://github.com/apify/header-generator#readme",
+  "description": "NodeJs package for generating browser-like headers.",
   "devDependencies": {
     "@apify/eslint-config": "^0.1.3",
     "eslint": "^7.19.0",
@@ -30,5 +43,21 @@
     "jest": "^26.6.3",
     "jsdoc-to-markdown": "^7.0.0",
     "markdown-toc": "^1.2.0"
-  }
+  },
+  "homepage": "https://github.com/apify/header-generator#readme",
+  "license": "Apache-2.0",
+  "main": "src/main.js",
+  "name": "header-generator",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apify/header-generator.git"
+  },
+  "scripts": {
+    "build-docs": "npm run build-toc && node docs/build-docs.js",
+    "build-toc": "markdown-toc docs/README.md -i",
+    "lint": "eslint ./src --ext .js,.jsx",
+    "lint:fix": "eslint ./src --ext .js,.jsx --fix",
+    "test": "jest --maxWorkers=3 --forceExit"
+  },
+  "version": "0.0.1"
 }

@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const { BayesianNetwork } = require('bayesian-network');
-
+const {default: ow} = require('ow');
 const headerNetworkDefinitionPath = path.join(__dirname, './headerNetworkDefinition.json');
 const inputNetworkDefinitionPath = path.join(__dirname, './inputNetworkDefinition.json');
 const browserHelperFilePath = path.join(__dirname, './browserHelperFile.json');
 
-const httpVersionNodeName = '*HTTP_VERSION';
+const browserHttpNodeName = '*BROWSER_HTTP';
 const browserNodeName = '*BROWSER';
 const operatingSystemNodeName = '*OPERATING_SYSTEM';
 const deviceNodeName = '*DEVICE';
@@ -48,6 +48,18 @@ function browserVersionIsLesserOrEquals(browserVersionL, browserVersionR) {
     return browserVersionL[0] <= browserVersionR[0];
 }
 
+function prepareHttpBrowserObject(httpBrowserString) {
+    const [ browserString, httpVersion ] = httpBrowserString.split('|');
+    const browserObject = browserString === missingValueDatasetToken ? { name: missingValueDatasetToken } : prepareBrowserObject(browserString);
+    return {
+        ...browserObject,
+        ...{
+            httpVersion,
+            completeString: httpBrowserString,
+        },
+    };
+}
+
 function prepareBrowserObject(browserString) {
     const nameVersionSplit = browserString.split('/');
     const versionSplit = nameVersionSplit[1].split('.');
@@ -65,7 +77,7 @@ function prepareBrowserObject(browserString) {
 
 /**
  * @typedef Browser
- * @param {string} name - One of "chrome", "firefox", "safari", "edge" for now.
+ * @param {string} name - One of "chrome", "firefox" and "safari".
  * @param {number} minVersion - Minimal version of browser used.
  * @param {number} maxVersion - Maximal version of browser used.
  * @param {string} httpVersion - Either 1 or 2. If none specified the global `httpVersion` is used.
@@ -73,23 +85,39 @@ function prepareBrowserObject(browserString) {
 /**
  * @typedef HeaderGeneratorOptions
  * @param {Array<Browser>} browsers - List of Browsers to generate the headers for.
- * @param {Array<string>} operatingSystems - List of operating systems the headers for.
- *  “windows” “macos” “linux” “android” “ios”. We don't need more I guess.
- * @param {Array<string>} browserList - Browser definition based on the https://www.npmjs.com/package/browserslist.
- * @param {Array<string>} devices - List of devices to generate the headers for. One of "desktop", "mobile".
+ * @param {Array<string>} operatingSystems - List of operating systems to generate the headers for.
+ *  The options are "windows", "macos", "linux", "android" and "ios".
+ * @param {Array<string>} devices - List of devices to generate the headers for. Options are "desktop" and "mobile".
  * @param {Array<string>} locales - List of at most 10 languages to include in the `Accept-Language` request header.
- * @param {string} httpVersion - Http version to be used to generate headers. http 1 and http 2 sends different header sets.
- * @param {string} strategies - Strategies for generating headers - used for simplifying the configuration. For example: "modern-browsers".
+ * @param {string} httpVersion - Http version to be used to generate headers (the headers differ depending on the version). 
+ *  Can be either 1 or 2.
  */
 
 /**
- * Class generating random browser headers based on input.
+ * HeaderGenerator randomly generates realistic browser headers based on specified options.
  */
 class HeaderGenerator {
+
+    static browserShape = {
+        name: ow.string,
+        minVersion: ow.optional.number,
+        maxVersion: ow.optional.number,
+        httpVersion: ow.optional.string,
+    }
+
+    static headerGeneratorOptionsShape = {
+        browsers: ow.optional.array,
+        operatingSystems: ow.optional.array,
+        devices: ow.optional.array,
+        locales: ow.optional.array,
+        httpVersion: ow.optional.string,
+    }
+
     /**
-     * @param {HeaderGeneratorOptions} options
+     * @param {HeaderGeneratorOptions} options - default header generation options used unless overridden
      */
     constructor(options = {}) {
+        ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(HeaderGenerator.headerGeneratorOptionsShape));
         this.defaultOptions = options;
         const uniqueBrowserStrings = JSON.parse(fs.readFileSync(browserHelperFilePath, { encoding: 'utf8' }));
         this.uniqueBrowsers = [];
@@ -99,7 +127,7 @@ class HeaderGenerator {
                     name: missingValueDatasetToken,
                 });
             } else {
-                this.uniqueBrowsers.push(prepareBrowserObject(browserString));
+                this.uniqueBrowsers.push(prepareHttpBrowserObject(browserString));
             }
         }
         this.inputGeneratorNetwork = new BayesianNetwork(inputNetworkDefinitionPath);
@@ -107,10 +135,15 @@ class HeaderGenerator {
     }
 
     /**
-     * @param {HeaderGeneratorOptions} options - main options overrides.
+     * Generates a single set of headers using a combination of the default options specified in the constructor
+     * and their possible overrides provided here.
+     * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
      */
     getHeaders(options) {
+        ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(HeaderGenerator.headerGeneratorOptionsShape));
         const headerOptions = { ...this.defaultOptions, ...options };
+
+        // Set up defaults
         if (!headerOptions.locales) {
             headerOptions.locales = ['en-US'];
         }
@@ -134,40 +167,52 @@ class HeaderGenerator {
             ];
         }
 
+        headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
+            if (!browserObject.httpVersion) {
+                browserObject.httpVersion = headerOptions.httpVersion;
+            }
+            return browserObject;
+        });
+
         const possibleAttributeValues = {};
 
-        const browserOptions = [];
+        // Find known browsers compatible with the input
+        const browserHttpOptions = [];
         for (const browser of headerOptions.browsers) {
             for (const browserOption of this.uniqueBrowsers) {
                 if (browser.name === browserOption.name) {
                     if ((!browser.minVersion || browserVersionIsLesserOrEquals([browser.minVersion], browserOption.version))
-                        && (!browser.maxVersion || browserVersionIsLesserOrEquals(browserOption.version, [browser.maxVersion]))) {
-                        browserOptions.push(browserOption.completeString);
+                        && (!browser.maxVersion || browserVersionIsLesserOrEquals(browserOption.version, [browser.maxVersion]))
+                        && browser.httpVersion === browserOption.httpVersion) {
+                        browserHttpOptions.push(browserOption.completeString);
                     }
                 }
             }
         }
 
-        possibleAttributeValues[browserNodeName] = browserOptions;
+        possibleAttributeValues[browserHttpNodeName] = browserHttpOptions;
 
         possibleAttributeValues[operatingSystemNodeName] = headerOptions.operatingSystems;
 
         if (headerOptions.devices) {
             possibleAttributeValues[deviceNodeName] = headerOptions.devices;
         }
-        possibleAttributeValues[httpVersionNodeName] = headerOptions.httpVersion === '2' ? ['_2.0_'] : ['_1.0_', '_1.1_'];
 
+        // Generate a sample of input attributes consistent with the data used to create the definition files if possible. If not, nothing can be generated.
         const inputSample = this.inputGeneratorNetwork.generateSampleWheneverPossible(possibleAttributeValues);
 
         if (!inputSample) {
             throw new Error('No headers based on this input can be generated. Please relax or change some of the requirements you specified.');
         }
 
+        // Generate the actual headers
         const generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
 
+        // Manually fill the accept-language header with random ordering of the locales from input
+        const generatedHttpAndBrowser = prepareHttpBrowserObject(generatedSample[browserHttpNodeName]);
         let secFetchAttributeNames = http2SecFetchAttributes;
         let acceptLanguageFieldName = 'accept-language';
-        if (headerOptions.httpVersion !== '2') {
+        if (generatedHttpAndBrowser.httpVersion !== '2') {
             acceptLanguageFieldName = 'Accept-Language';
             secFetchAttributeNames = http1SecFetchAttributes;
         }
@@ -211,13 +256,13 @@ class HeaderGenerator {
 
         generatedSample[acceptLanguageFieldName] = acceptLanguageFieldValue;
 
-        const generatedBrowser = prepareBrowserObject(generatedSample[browserNodeName]);
-        if (generatedBrowser.name === 'chrome') {
-            if (generatedBrowser.version[0] >= 76) {
+        // Add fixed headers if needed
+        if (generatedHttpAndBrowser.name === 'chrome') {
+            if (generatedHttpAndBrowser.version[0] >= 76) {
                 generatedSample[secFetchAttributeNames.site] = 'same-site';
                 generatedSample[secFetchAttributeNames.mode] = 'navigate';
                 generatedSample[secFetchAttributeNames.user] = '?1';
-                if (generatedBrowser.version[0] >= 80) {
+                if (generatedHttpAndBrowser.version[0] >= 80) {
                     generatedSample[secFetchAttributeNames.dest] = 'document';
                 }
             }
