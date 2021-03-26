@@ -5,13 +5,13 @@ NodeJs package for generating browser-like headers.
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Examples](#examples)
+- [Result example](#result-example)
 - [API Reference](#api-reference)
 
 <!-- tocstop -->
 
 ## Installation
-Add this repository as an npm dependency and run the npm install command. No further setup is needed after that.
+Run the `npm install header-generator` command. No further setup is needed afterwards.
 ## Usage
 To use the generator, you need to create an instance of the `HeaderGenerator` class which is exported from this package. Constructor of this class accepts a `HeaderGeneratorOptions` object, which can be used to globally specify what kind of headers you are looking for: 
 ```js
@@ -39,7 +39,7 @@ let headers = headersGenerator.getHeaders({
 });
 ```
 This method always generates a random realistic set of headers, excluding the request dependant headers, which need to be filled in afterwards. Since the generation is randomized, multiple calls to this method with the same parameters can generate multiple different outputs.
-## Examples
+## Result example
 A result that can be generated for the usage example above:
 ```json
 {

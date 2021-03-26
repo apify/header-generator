@@ -1,30 +1,4 @@
 {
-  "_args": [
-    [
-      "git+https://github.com/apify/header-generator.git#bayesianGenerator",
-      "/home/matthew/Documents/Apify/HeaderGeneration/HeaderGenerationTester"
-    ]
-  ],
-  "_from": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
-  "_id": "header-generator@git+https://github.com/apify/header-generator.git#c5b5f8520d5b383ccee7016201f2bc6f782d7b45",
-  "_inBundle": false,
-  "_integrity": "",
-  "_location": "/header-generator",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "git",
-    "raw": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
-    "rawSpec": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
-    "saveSpec": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
-    "fetchSpec": "https://github.com/apify/header-generator.git",
-    "gitCommittish": "bayesianGenerator"
-  },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "git+https://github.com/apify/header-generator.git#c5b5f8520d5b383ccee7016201f2bc6f782d7b45",
-  "_spec": "git+https://github.com/apify/header-generator.git#bayesianGenerator",
-  "_where": "/home/matthew/Documents/Apify/HeaderGeneration/HeaderGenerationTester",
   "author": {
     "name": "Apify"
   },

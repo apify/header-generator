@@ -3,9 +3,9 @@ const path = require('path');
 const { BayesianNetwork } = require('bayesian-network');
 const { default: ow } = require('ow');
 
-const headerNetworkDefinitionPath = path.join(__dirname, './headerNetworkDefinition.json');
-const inputNetworkDefinitionPath = path.join(__dirname, './inputNetworkDefinition.json');
-const browserHelperFilePath = path.join(__dirname, './browserHelperFile.json');
+const headerNetworkDefinitionPath = path.join(__dirname, './data_files/header-network-definition.json');
+const inputNetworkDefinitionPath = path.join(__dirname, './data_files/input-network-definition.json');
+const browserHelperFilePath = path.join(__dirname, './data_files/browser-helper-file.json');
 
 const browserHttpNodeName = '*BROWSER_HTTP';
 const operatingSystemNodeName = '*OPERATING_SYSTEM';
@@ -32,7 +32,7 @@ function getRandomInteger(minimum, maximum) {
 
 function shuffleArray(array) {
     if (array.length > 1) {
-        for (let x = 0; x < 10; x++) {
+        for (let x = 0; x < array.length; x++) {
             const position1 = getRandomInteger(0, array.length - 1);
             const position2 = getRandomInteger(0, array.length - 1);
             const holder = array[position1];
@@ -48,6 +48,9 @@ function browserVersionIsLesserOrEquals(browserVersionL, browserVersionR) {
     return browserVersionL[0] <= browserVersionR[0];
 }
 
+/**
+ * @param {string} httpBrowserString - a string containing the browser name, version and http version, such as "chrome/88.0.4324.182|2"
+ */
 function prepareHttpBrowserObject(httpBrowserString) {
     const [browserString, httpVersion] = httpBrowserString.split('|');
     const browserObject = browserString === missingValueDatasetToken ? { name: missingValueDatasetToken } : prepareBrowserObject(browserString);
@@ -60,6 +63,9 @@ function prepareHttpBrowserObject(httpBrowserString) {
     };
 }
 
+/**
+ * @param {string} browserString - a string containing the browser name and version, such as "chrome/88.0.4324.182"
+ */
 function prepareBrowserObject(browserString) {
     const nameVersionSplit = browserString.split('/');
     const versionSplit = nameVersionSplit[1].split('.');
@@ -75,11 +81,18 @@ function prepareBrowserObject(browserString) {
     };
 }
 
+const browserShape = {
+    name: ow.string,
+    minVersion: ow.optional.number,
+    maxVersion: ow.optional.number,
+    httpVersion: ow.optional.string,
+};
+
 const headerGeneratorOptionsShape = {
-    browsers: ow.optional.array,
-    operatingSystems: ow.optional.array,
-    devices: ow.optional.array,
-    locales: ow.optional.array,
+    browsers: ow.optional.array.ofType(ow.object.exactShape(browserShape)),
+    operatingSystems: ow.optional.array.ofType(ow.string),
+    devices: ow.optional.array.ofType(ow.string),
+    locales: ow.optional.array.ofType(ow.string),
     httpVersion: ow.optional.string,
 };
 
