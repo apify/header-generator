@@ -6,6 +6,7 @@ const { default: ow } = require('ow');
 const headerNetworkDefinitionPath = path.join(__dirname, './data_files/header-network-definition.json');
 const inputNetworkDefinitionPath = path.join(__dirname, './data_files/input-network-definition.json');
 const browserHelperFilePath = path.join(__dirname, './data_files/browser-helper-file.json');
+const headersOrderFilePath = path.join(__dirname, './data_files/headers-order.json');
 
 const browserHttpNodeName = '*BROWSER_HTTP';
 const operatingSystemNodeName = '*OPERATING_SYSTEM';
@@ -26,10 +27,16 @@ const http1SecFetchAttributes = {
     user: 'Sec-Fetch-User',
 };
 
+/*
+ * @private
+ */
 function getRandomInteger(minimum, maximum) {
     return minimum + Math.floor(Math.random() * (maximum - minimum + 1));
 }
 
+/*
+ * @private
+ */
 function shuffleArray(array) {
     if (array.length > 1) {
         for (let x = 0; x < array.length; x++) {
@@ -44,12 +51,17 @@ function shuffleArray(array) {
     return array;
 }
 
+/*
+ * @private
+ */
 function browserVersionIsLesserOrEquals(browserVersionL, browserVersionR) {
     return browserVersionL[0] <= browserVersionR[0];
 }
 
 /**
+ * Extract structured information about a browser and http version in the form of an object from httpBrowserString.
  * @param {string} httpBrowserString - a string containing the browser name, version and http version, such as "chrome/88.0.4324.182|2"
+ * @private
  */
 function prepareHttpBrowserObject(httpBrowserString) {
     const [browserString, httpVersion] = httpBrowserString.split('|');
@@ -64,7 +76,9 @@ function prepareHttpBrowserObject(httpBrowserString) {
 }
 
 /**
+ * Extract structured information about a browser in the form of an object from browserString.
  * @param {string} browserString - a string containing the browser name and version, such as "chrome/88.0.4324.182"
+ * @private
  */
 function prepareBrowserObject(browserString) {
     const nameVersionSplit = browserString.split('/');
@@ -81,7 +95,7 @@ function prepareBrowserObject(browserString) {
     };
 }
 
-const browserShape = {
+const browserSpecificationShape = {
     name: ow.string,
     minVersion: ow.optional.number,
     maxVersion: ow.optional.number,
@@ -89,7 +103,7 @@ const browserShape = {
 };
 
 const headerGeneratorOptionsShape = {
-    browsers: ow.optional.array.ofType(ow.object.exactShape(browserShape)),
+    browsers: ow.optional.array.ofType(ow.object.exactShape(browserSpecificationShape)),
     operatingSystems: ow.optional.array.ofType(ow.string),
     devices: ow.optional.array.ofType(ow.string),
     locales: ow.optional.array.ofType(ow.string),
@@ -97,21 +111,24 @@ const headerGeneratorOptionsShape = {
 };
 
 /**
- * @typedef Browser
- * @param {string} name - One of "chrome", "firefox" and "safari".
+ * @typedef BrowserSpecification
+ * @param {string} name - One of `chrome`, `firefox` and `safari`.
  * @param {number} minVersion - Minimal version of browser used.
  * @param {number} maxVersion - Maximal version of browser used.
- * @param {string} httpVersion - Either 1 or 2. If none specified the global `httpVersion` is used.
+ * @param {string} httpVersion - Http version to be used to generate headers (the headers differ depending on the version).
+ *  Either 1 or 2. If none specified the httpVersion specified in `HeaderGeneratorOptions` is used.
  */
 /**
  * @typedef HeaderGeneratorOptions
- * @param {Array<Browser>} browsers - List of Browsers to generate the headers for.
+ * @param {Array<BrowserSpecification>} browsers - List of BrowserSpecifications to generate the headers for.
  * @param {Array<string>} operatingSystems - List of operating systems to generate the headers for.
- *  The options are "windows", "macos", "linux", "android" and "ios".
- * @param {Array<string>} devices - List of devices to generate the headers for. Options are "desktop" and "mobile".
- * @param {Array<string>} locales - List of at most 10 languages to include in the `Accept-Language` request header.
+ *  The options are `windows`, `macos`, `linux`, `android` and `ios`.
+ * @param {Array<string>} devices - List of devices to generate the headers for. Options are `desktop` and `mobile`.
+ * @param {Array<string>} locales - List of at most 10 languages to include in the
+ *  [Accept-Language](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language) request header
+ *  in the language format accepted by that header, for example `en`, `en-US` or `de`.
  * @param {string} httpVersion - Http version to be used to generate headers (the headers differ depending on the version).
- *  Can be either 1 or 2.
+ *  Can be either 1 or 2. Default value is 2.
  */
 
 /**
@@ -124,6 +141,7 @@ class HeaderGenerator {
     constructor(options = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         this.defaultOptions = options;
+        this.headersOrder = JSON.parse(fs.readFileSync(headersOrderFilePath, { encoding: 'utf8' }));
         const uniqueBrowserStrings = JSON.parse(fs.readFileSync(browserHelperFilePath, { encoding: 'utf8' }));
         this.uniqueBrowsers = [];
         for (const browserString of uniqueBrowserStrings) {
@@ -277,7 +295,15 @@ class HeaderGenerator {
             if (attribute.startsWith('*') || generatedSample[attribute] === missingValueDatasetToken) delete generatedSample[attribute];
         }
 
-        return generatedSample;
+        // Order the headers in an order depending on the browser
+        const orderedSample = {};
+        for (const attribute of this.headersOrder[generatedHttpAndBrowser.name]) {
+            if (attribute in generatedSample) {
+                orderedSample[attribute] = generatedSample[attribute];
+            }
+        }
+
+        return orderedSample;
     }
 }
 

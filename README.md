@@ -96,38 +96,16 @@ and their possible overrides provided here.
 
 * * *
 
-<a name="prepareHttpBrowserObject"></a>
+<a name="BrowserSpecification"></a>
 
-### `prepareHttpBrowserObject(httpBrowserString)`
-
-| Param | Type | Description |
-| --- | --- | --- |
-| httpBrowserString | <code>string</code> | a string containing the browser name, version and http version, such as "chrome/88.0.4324.182|2" |
-
-
-* * *
-
-<a name="prepareBrowserObject"></a>
-
-### `prepareBrowserObject(browserString)`
+### `BrowserSpecification`
 
 | Param | Type | Description |
 | --- | --- | --- |
-| browserString | <code>string</code> | a string containing the browser name and version, such as "chrome/88.0.4324.182" |
-
-
-* * *
-
-<a name="Browser"></a>
-
-### `Browser`
-
-| Param | Type | Description |
-| --- | --- | --- |
-| name | <code>string</code> | One of "chrome", "firefox" and "safari". |
+| name | <code>string</code> | One of `chrome`, `firefox` and `safari`. |
 | minVersion | <code>number</code> | Minimal version of browser used. |
 | maxVersion | <code>number</code> | Maximal version of browser used. |
-| httpVersion | <code>string</code> | Either 1 or 2. If none specified the global `httpVersion` is used. |
+| httpVersion | <code>string</code> | Http version to be used to generate headers (the headers differ depending on the version).  Either 1 or 2. If none specified the httpVersion specified in `HeaderGeneratorOptions` is used. |
 
 
 * * *
@@ -138,11 +116,11 @@ and their possible overrides provided here.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| browsers | [<code>Array.&lt;Browser&gt;</code>](#Browser) | List of Browsers to generate the headers for. |
-| operatingSystems | <code>Array.&lt;string&gt;</code> | List of operating systems to generate the headers for.  The options are "windows", "macos", "linux", "android" and "ios". |
-| devices | <code>Array.&lt;string&gt;</code> | List of devices to generate the headers for. Options are "desktop" and "mobile". |
-| locales | <code>Array.&lt;string&gt;</code> | List of at most 10 languages to include in the `Accept-Language` request header. |
-| httpVersion | <code>string</code> | Http version to be used to generate headers (the headers differ depending on the version).  Can be either 1 or 2. |
+| browsers | [<code>Array.&lt;BrowserSpecification&gt;</code>](#BrowserSpecification) | List of BrowserSpecifications to generate the headers for. |
+| operatingSystems | <code>Array.&lt;string&gt;</code> | List of operating systems to generate the headers for.  The options are `windows`, `macos`, `linux`, `android` and `ios`. |
+| devices | <code>Array.&lt;string&gt;</code> | List of devices to generate the headers for. Options are `desktop` and `mobile`. |
+| locales | <code>Array.&lt;string&gt;</code> | List of at most 10 languages to include in the  [Accept-Language](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language) request header  in the language format accepted by that header, for example `en`, `en-US` or `de`. |
+| httpVersion | <code>string</code> | Http version to be used to generate headers (the headers differ depending on the version).  Can be either 1 or 2. Default value is 2. |
 
 
 * * *

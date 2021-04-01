@@ -44,9 +44,9 @@ describe('Generation tests', () => {
     test('Generates headers consistent with browsers input', () => {
         const headers = headerGenerator.getHeaders({
             httpVersion: "2",
-            browsers: [{ name: "safari" }]
+            browsers: [{ name: "firefox" }]
         });
-        expect(/safari/.test(headers['user-agent'].toLowerCase())).toBeTruthy();
+        expect(/firefox/.test(headers['user-agent'].toLowerCase())).toBeTruthy();
     });
 
     test('Generates headers consistent with operating systems input', () => {
