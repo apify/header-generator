@@ -66,7 +66,7 @@ HeaderGenerator randomly generates realistic browser headers based on specified 
 
 * [HeaderGenerator](#HeaderGenerator)
     * [`new HeaderGenerator(options)`](#new_HeaderGenerator_new)
-    * [`.getHeaders(options)`](#HeaderGenerator+getHeaders)
+    * [`.getHeaders(options, requestDependentHeaders)`](#HeaderGenerator+getHeaders)
 
 
 * * *
@@ -84,7 +84,7 @@ HeaderGenerator randomly generates realistic browser headers based on specified 
 
 <a name="HeaderGenerator+getHeaders"></a>
 
-#### `headerGenerator.getHeaders(options)`
+#### `headerGenerator.getHeaders(options, requestDependentHeaders)`
 Generates a single set of headers using a combination of the default options specified in the constructor
 and their possible overrides provided here.
 
@@ -92,6 +92,7 @@ and their possible overrides provided here.
 | Param | Type | Description |
 | --- | --- | --- |
 | options | [<code>HeaderGeneratorOptions</code>](#HeaderGeneratorOptions) | specifies options that should be overridden for this one call |
+| requestDependentHeaders | <code>Object</code> | specifies known values of headers dependent on the particular request |
 
 
 * * *
