@@ -161,7 +161,7 @@ class HeaderGenerator {
      * Generates a single set of headers using a combination of the default options specified in the constructor
      * and their possible overrides provided here.
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
-     * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request 
+     * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
      */
     getHeaders(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
