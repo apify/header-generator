@@ -1,5 +1,7 @@
 {
     "safari": [
+        "cookie",
+        "Cookie",
         "Connection",
         "sec-ch-ua",
         "sec-ch-ua-mobile",
@@ -13,6 +15,8 @@
         "User-Agent",
         "accept-language",
         "Accept-Language",
+        "referer",
+        "Referer",
         "sec-fetch-site",
         "sec-fetch-mode",
         "sec-fetch-user",
@@ -45,11 +49,15 @@
         "Sec-Fetch-Dest",
         "Sec-Fetch-Site",
         "Sec-Fetch-User",
+        "referer",
+        "Referer",
         "accept-encoding",
         "Accept-Encoding",
         "accept-language",
         "Accept-Language",
-        "te"
+        "te",
+        "cookie",
+        "Cookie"
     ],
     "firefox": [
         "sec-ch-ua",
@@ -64,6 +72,10 @@
         "Accept-Encoding",
         "dnt",
         "DNT",
+        "referer",
+        "Referer",
+        "cookie",
+        "Cookie",
         "Connection",
         "upgrade-insecure-requests",
         "Upgrade-Insecure-Requests",

@@ -161,8 +161,9 @@ class HeaderGenerator {
      * Generates a single set of headers using a combination of the default options specified in the constructor
      * and their possible overrides provided here.
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
+     * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request 
      */
-    getHeaders(options = {}) {
+    getHeaders(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = { ...this.defaultOptions, ...options };
 
@@ -229,7 +230,7 @@ class HeaderGenerator {
         }
 
         // Generate the actual headers
-        const generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
+        let generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
 
         // Manually fill the accept-language header with random ordering of the locales from input
         const generatedHttpAndBrowser = prepareHttpBrowserObject(generatedSample[browserHttpNodeName]);
@@ -294,6 +295,8 @@ class HeaderGenerator {
         for (const attribute of Object.keys(generatedSample)) {
             if (attribute.startsWith('*') || generatedSample[attribute] === missingValueDatasetToken) delete generatedSample[attribute];
         }
+
+        generatedSample = { ...generatedSample, ...requestDependentHeaders };
 
         // Order the headers in an order depending on the browser
         const orderedSample = {};
