@@ -3,15 +3,23 @@ const path = require('path');
 const { BayesianNetwork } = require('bayesian-network');
 const { default: ow } = require('ow');
 
-const headerNetworkDefinitionPath = path.join(__dirname, './data_files/header-network-definition.json');
-const inputNetworkDefinitionPath = path.join(__dirname, './data_files/input-network-definition.json');
-const browserHelperFilePath = path.join(__dirname, './data_files/browser-helper-file.json');
-const headersOrderFilePath = path.join(__dirname, './data_files/headers-order.json');
+const BROWSER_HTTP_NODE_NAME = '*BROWSER_HTTP';
+const OPERATING_SYSTEM_NODE_NAME = '*OPERATING_SYSTEM';
+const DEVICE_NODE_NAME = '*DEVICE';
 
-const browserHttpNodeName = '*BROWSER_HTTP';
-const operatingSystemNodeName = '*OPERATING_SYSTEM';
-const deviceNodeName = '*DEVICE';
-const missingValueDatasetToken = '*MISSING_VALUE*';
+const MISSING_VALUE_DATASET_TOKEN = '*MISSING_VALUE*';
+
+const headerNetworkDefinition = require('./data_files/header-network-definition.json');
+const inputNetworkDefinition = require('./data_files/input-network-definition.json');
+const headersOrder = require('./data_files/headers-order.json');
+const uniqueBrowserStrings = require('./data_files/browser-helper-file.json');
+const uniqueBrowsers = [];
+for (const browserString of uniqueBrowserStrings) {
+    // There are headers without user agents in the datasets we used to configure the generator. They should be disregarded.
+    if (browserString !== MISSING_VALUE_DATASET_TOKEN) {
+        uniqueBrowsers.push(prepareHttpBrowserObject(browserString));
+    }
+}
 
 const http2SecFetchAttributes = {
     mode: 'sec-fetch-mode',
@@ -65,7 +73,7 @@ function browserVersionIsLesserOrEquals(browserVersionL, browserVersionR) {
  */
 function prepareHttpBrowserObject(httpBrowserString) {
     const [browserString, httpVersion] = httpBrowserString.split('|');
-    const browserObject = browserString === missingValueDatasetToken ? { name: missingValueDatasetToken } : prepareBrowserObject(browserString);
+    const browserObject = browserString === MISSING_VALUE_DATASET_TOKEN ? { name: MISSING_VALUE_DATASET_TOKEN } : prepareBrowserObject(browserString);
     return {
         ...browserObject,
         ...{
@@ -140,21 +148,33 @@ class HeaderGenerator {
      */
     constructor(options = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
-        this.defaultOptions = options;
-        this.headersOrder = JSON.parse(fs.readFileSync(headersOrderFilePath, { encoding: 'utf8' }));
-        const uniqueBrowserStrings = JSON.parse(fs.readFileSync(browserHelperFilePath, { encoding: 'utf8' }));
-        this.uniqueBrowsers = [];
-        for (const browserString of uniqueBrowserStrings) {
-            if (browserString === missingValueDatasetToken) {
-                this.uniqueBrowsers.push({
-                    name: missingValueDatasetToken,
-                });
-            } else {
-                this.uniqueBrowsers.push(prepareHttpBrowserObject(browserString));
-            }
+        this.defaultOptions = JSON.parse(JSON.stringify(options));
+        // Use a default setup when the necessary values are not provided
+        if (!this.defaultOptions.locales) {
+            this.defaultOptions.locales = ['en-US'];
         }
-        this.inputGeneratorNetwork = new BayesianNetwork(inputNetworkDefinitionPath);
-        this.headerGeneratorNetwork = new BayesianNetwork(headerNetworkDefinitionPath);
+        if (!this.defaultOptions.httpVersion) {
+            this.defaultOptions.httpVersion = '2';
+        }
+        if (!this.defaultOptions.browsers) {
+            this.defaultOptions.browsers = [
+                { name: 'chrome' },
+                { name: 'firefox' },
+                { name: 'safari' },
+            ];
+        }
+        if (!this.defaultOptions.operatingSystems) {
+            this.defaultOptions.operatingSystems = [
+                'windows',
+                'macos',
+                'linux',
+                'android',
+                'ios',
+            ];
+        }
+
+        this.inputGeneratorNetwork = new BayesianNetwork(inputNetworkDefinition);
+        this.headerGeneratorNetwork = new BayesianNetwork(headerNetworkDefinition);
     }
 
     /**
@@ -165,31 +185,7 @@ class HeaderGenerator {
      */
     getHeaders(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
-        const headerOptions = { ...this.defaultOptions, ...options };
-
-        // Set up defaults
-        if (!headerOptions.locales) {
-            headerOptions.locales = ['en-US'];
-        }
-        if (!headerOptions.httpVersion) {
-            headerOptions.httpVersion = '2';
-        }
-        if (!headerOptions.browsers) {
-            headerOptions.browsers = [
-                { name: 'chrome' },
-                { name: 'firefox' },
-                { name: 'safari' },
-            ];
-        }
-        if (!headerOptions.operatingSystems) {
-            headerOptions.operatingSystems = [
-                'windows',
-                'macos',
-                'linux',
-                'android',
-                'ios',
-            ];
-        }
+        const headerOptions = JSON.parse(JSON.stringify({ ...this.defaultOptions, ...options }));
 
         headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
             if (!browserObject.httpVersion) {
@@ -203,7 +199,7 @@ class HeaderGenerator {
         // Find known browsers compatible with the input
         const browserHttpOptions = [];
         for (const browser of headerOptions.browsers) {
-            for (const browserOption of this.uniqueBrowsers) {
+            for (const browserOption of uniqueBrowsers) {
                 if (browser.name === browserOption.name) {
                     if ((!browser.minVersion || browserVersionIsLesserOrEquals([browser.minVersion], browserOption.version))
                         && (!browser.maxVersion || browserVersionIsLesserOrEquals(browserOption.version, [browser.maxVersion]))
@@ -214,16 +210,16 @@ class HeaderGenerator {
             }
         }
 
-        possibleAttributeValues[browserHttpNodeName] = browserHttpOptions;
+        possibleAttributeValues[BROWSER_HTTP_NODE_NAME] = browserHttpOptions;
 
-        possibleAttributeValues[operatingSystemNodeName] = headerOptions.operatingSystems;
+        possibleAttributeValues[OPERATING_SYSTEM_NODE_NAME] = headerOptions.operatingSystems;
 
         if (headerOptions.devices) {
-            possibleAttributeValues[deviceNodeName] = headerOptions.devices;
+            possibleAttributeValues[DEVICE_NODE_NAME] = headerOptions.devices;
         }
 
         // Generate a sample of input attributes consistent with the data used to create the definition files if possible.
-        const inputSample = this.inputGeneratorNetwork.generateSampleWheneverPossible(possibleAttributeValues);
+        const inputSample = this.inputGeneratorNetwork.generateConsistentSampleWhenPossible(possibleAttributeValues);
 
         if (!inputSample) {
             throw new Error('No headers based on this input can be generated. Please relax or change some of the requirements you specified.');
@@ -233,7 +229,7 @@ class HeaderGenerator {
         let generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
 
         // Manually fill the accept-language header with random ordering of the locales from input
-        const generatedHttpAndBrowser = prepareHttpBrowserObject(generatedSample[browserHttpNodeName]);
+        const generatedHttpAndBrowser = prepareHttpBrowserObject(generatedSample[BROWSER_HTTP_NODE_NAME]);
         let secFetchAttributeNames = http2SecFetchAttributes;
         let acceptLanguageFieldName = 'accept-language';
         if (generatedHttpAndBrowser.httpVersion !== '2') {
@@ -293,19 +289,19 @@ class HeaderGenerator {
         }
 
         for (const attribute of Object.keys(generatedSample)) {
-            if (attribute.startsWith('*') || generatedSample[attribute] === missingValueDatasetToken) delete generatedSample[attribute];
+            if (attribute.startsWith('*') || generatedSample[attribute] === MISSING_VALUE_DATASET_TOKEN) delete generatedSample[attribute];
         }
 
         generatedSample = { ...generatedSample, ...requestDependentHeaders };
 
         // Order the headers in an order depending on the browser
         const orderedSample = {};
-        for (const attribute of this.headersOrder[generatedHttpAndBrowser.name]) {
+        for (const attribute of headersOrder[generatedHttpAndBrowser.name]) {
             if (attribute in generatedSample) {
                 orderedSample[attribute] = generatedSample[attribute];
             }
         }
-
+        console.log(orderedSample);
         return orderedSample;
     }
 }
