@@ -9,10 +9,10 @@ const DEVICE_NODE_NAME = '*DEVICE';
 
 const MISSING_VALUE_DATASET_TOKEN = '*MISSING_VALUE*';
 
-const headerNetworkDefinition = require('./data_files/header-network-definition.json');
-const inputNetworkDefinition = require('./data_files/input-network-definition.json');
-const headersOrder = require('./data_files/headers-order.json');
-const uniqueBrowserStrings = require('./data_files/browser-helper-file.json');
+const headerNetworkDefinition = require(path.join(__dirname, './data_files/header-network-definition.json'));
+const inputNetworkDefinition = require(path.join(__dirname, './data_files/input-network-definition.json'));
+const headersOrder = require(path.join(__dirname, './data_files/headers-order.json'));
+const uniqueBrowserStrings = require(path.join(__dirname, './data_files/browser-helper-file.json'));
 const uniqueBrowsers = [];
 for (const browserString of uniqueBrowserStrings) {
     // There are headers without user agents in the datasets we used to configure the generator. They should be disregarded.
