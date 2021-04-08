@@ -301,7 +301,7 @@ class HeaderGenerator {
                 orderedSample[attribute] = generatedSample[attribute];
             }
         }
-        console.log(orderedSample);
+
         return orderedSample;
     }
 }
