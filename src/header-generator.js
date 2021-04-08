@@ -37,22 +37,10 @@ const http1SecFetchAttributes = {
 /*
  * @private
  */
-function getRandomInteger(minimum, maximum) {
-    return minimum + Math.floor(Math.random() * (maximum - minimum + 1));
-}
-
-/*
- * @private
- */
 function shuffleArray(array) {
-    if (array.length > 1) {
-        for (let x = 0; x < array.length; x++) {
-            const position1 = getRandomInteger(0, array.length - 1);
-            const position2 = getRandomInteger(0, array.length - 1);
-            const holder = array[position1];
-            array[position1] = array[position2];
-            array[position2] = holder;
-        }
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
 
     return array;
