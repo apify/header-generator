@@ -1,4 +1,4 @@
-const { BayesianNetwork } = require('bayesian-network');
+const { BayesianNetwork } = require('generative-bayesian-network');
 const { default: ow } = require('ow');
 
 const BROWSER_HTTP_NODE_NAME = '*BROWSER_HTTP';
