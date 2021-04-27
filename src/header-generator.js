@@ -46,6 +46,20 @@ function shuffleArray(array) {
     return array;
 }
 
+/**
+ * @private
+ * @param {string|BrowserSpecification} browser
+ * @returns
+ */
+function maybeConvertStringToBrowser(browser) {
+    if (typeof browser === 'string') {
+        return {
+            name: browser,
+        };
+    }
+
+    return browser;
+}
 /*
  * @private
  */
@@ -98,7 +112,7 @@ const browserSpecificationShape = {
 };
 
 const headerGeneratorOptionsShape = {
-    browsers: ow.optional.array.ofType(ow.object.exactShape(browserSpecificationShape)),
+    browsers: ow.optional.array.ofType(ow.any(ow.object.exactShape(browserSpecificationShape), ow.string)),
     operatingSystems: ow.optional.array.ofType(ow.string),
     devices: ow.optional.array.ofType(ow.string),
     locales: ow.optional.array.ofType(ow.string),
@@ -115,7 +129,7 @@ const headerGeneratorOptionsShape = {
  */
 /**
  * @typedef HeaderGeneratorOptions
- * @param {Array<BrowserSpecification>} browsers - List of BrowserSpecifications to generate the headers for.
+ * @param {Array<BrowserSpecification|string>} browsers - List of BrowserSpecifications to generate the headers for.
  * @param {Array<string>} operatingSystems - List of operating systems to generate the headers for.
  *  The options are `windows`, `macos`, `linux`, `android` and `ios`.
  * @param {Array<string>} devices - List of devices to generate the headers for. Options are `desktop` and `mobile`.
@@ -160,6 +174,8 @@ class HeaderGenerator {
             ];
         }
 
+        this.defaultOptions.browsers = this.defaultOptions.browsers && this.defaultOptions.browsers.map(maybeConvertStringToBrowser);
+
         this.inputGeneratorNetwork = new BayesianNetwork(inputNetworkDefinition);
         this.headerGeneratorNetwork = new BayesianNetwork(headerNetworkDefinition);
     }
@@ -173,6 +189,7 @@ class HeaderGenerator {
     getHeaders(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = JSON.parse(JSON.stringify({ ...this.defaultOptions, ...options }));
+        headerOptions.browsers = headerOptions.browsers && headerOptions.browsers.map(maybeConvertStringToBrowser);
 
         headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
             if (!browserObject.httpVersion) {
