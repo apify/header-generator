@@ -129,7 +129,8 @@ const headerGeneratorOptionsShape = {
  */
 /**
  * @typedef HeaderGeneratorOptions
- * @param {Array<BrowserSpecification|string>} browsers - List of BrowserSpecifications to generate the headers for.
+ * @param {Array<BrowserSpecification|string>} browsers - List of BrowserSpecifications to generate the headers for,
+ *  or one of `chrome`, `firefox` and `safari`.
  * @param {Array<string>} operatingSystems - List of operating systems to generate the headers for.
  *  The options are `windows`, `macos`, `linux`, `android` and `ios`.
  * @param {Array<string>} devices - List of devices to generate the headers for. Options are `desktop` and `mobile`.
