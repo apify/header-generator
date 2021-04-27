@@ -49,7 +49,7 @@ function shuffleArray(array) {
 /**
  * @private
  * @param {string|BrowserSpecification} browser
- * @returns
+ * @returns {BrowserSpecification}
  */
 function maybeConvertStringToBrowser(browser) {
     if (typeof browser === 'string') {
