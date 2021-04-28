@@ -46,20 +46,6 @@ function shuffleArray(array) {
     return array;
 }
 
-/**
- * @private
- * @param {string|BrowserSpecification} browser
- * @returns {BrowserSpecification}
- */
-function maybeConvertStringToBrowser(browser) {
-    if (typeof browser === 'string') {
-        return {
-            name: browser,
-        };
-    }
-
-    return browser;
-}
 /*
  * @private
  */
@@ -175,8 +161,6 @@ class HeaderGenerator {
             ];
         }
 
-        this.defaultOptions.browsers = this.defaultOptions.browsers && this.defaultOptions.browsers.map(maybeConvertStringToBrowser);
-
         this.inputGeneratorNetwork = new BayesianNetwork(inputNetworkDefinition);
         this.headerGeneratorNetwork = new BayesianNetwork(headerNetworkDefinition);
     }
@@ -190,9 +174,11 @@ class HeaderGenerator {
     getHeaders(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = JSON.parse(JSON.stringify({ ...this.defaultOptions, ...options }));
-        headerOptions.browsers = headerOptions.browsers && headerOptions.browsers.map(maybeConvertStringToBrowser);
-
         headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
+            if (typeof browserObject === 'string') {
+                browserObject = { name: browserObject };
+            }
+
             if (!browserObject.httpVersion) {
                 browserObject.httpVersion = headerOptions.httpVersion;
             }
