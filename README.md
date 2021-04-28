@@ -20,6 +20,7 @@ let headerGenerator = new HeaderGenerator({
         browsers: [
             {name: "firefox", minVersion: 80},
             {name: "chrome", minVersion: 87},
+            "safari"
         ],
         devices: [
             "desktop"
@@ -117,7 +118,7 @@ and their possible overrides provided here.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| browsers | [<code>Array.&lt;BrowserSpecification&gt;</code>](#BrowserSpecification) | List of BrowserSpecifications to generate the headers for. |
+| browsers | <code>Array.&lt;(BrowserSpecification\|string)&gt;</code> | List of BrowserSpecifications to generate the headers for,  or one of `chrome`, `firefox` and `safari`. |
 | operatingSystems | <code>Array.&lt;string&gt;</code> | List of operating systems to generate the headers for.  The options are `windows`, `macos`, `linux`, `android` and `ios`. |
 | devices | <code>Array.&lt;string&gt;</code> | List of devices to generate the headers for. Options are `desktop` and `mobile`. |
 | locales | <code>Array.&lt;string&gt;</code> | List of at most 10 languages to include in the  [Accept-Language](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language) request header  in the language format accepted by that header, for example `en`, `en-US` or `de`. |

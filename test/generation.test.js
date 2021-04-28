@@ -1,9 +1,9 @@
 const HeaderGenerator = require('../src/main');
- 
+
 function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
-    let extractedLocales = [];
+    const extractedLocales = [];
     const localesWithWeight = acceptLanguageHeader.split(',');
-    for(const localeWithWeight of localesWithWeight) {
+    for (const localeWithWeight of localesWithWeight) {
         const locale = localeWithWeight.split(';')[0].trim();
         extractedLocales.push(locale);
     }
@@ -11,13 +11,9 @@ function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
     return extractedLocales;
 }
 
-function extractOperatingSystem(userAgentHeader) {
-    userAgentHeader
-}
-
 describe('Generation tests', () => {
     const headerGenerator = new HeaderGenerator({
-        httpVersion: "2"
+        httpVersion: '2',
     });
 
     test('Generates headers', () => {
@@ -26,15 +22,15 @@ describe('Generation tests', () => {
 
     test('Options from getHeaders override options from the constructor', () => {
         const headers = headerGenerator.getHeaders({
-            httpVersion: "1"
+            httpVersion: '1',
         });
         expect('Accept-Language' in headers).toBeTruthy();
     });
 
     test('Generates headers with the requested locales', () => {
-        const requestedLocales = [ "en", "es", "en-GB" ];
+        const requestedLocales = ['en', 'es', 'en-GB'];
         const headers = headerGenerator.getHeaders({
-            httpVersion: "2",
+            httpVersion: '2',
             locales: requestedLocales,
         });
         const extractedLocales = extractLocalesFromAcceptLanguageHeader(headers['accept-language']);
@@ -43,16 +39,16 @@ describe('Generation tests', () => {
 
     test('Generates headers consistent with browsers input', () => {
         const headers = headerGenerator.getHeaders({
-            httpVersion: "2",
-            browsers: [{ name: "firefox" }]
+            httpVersion: '2',
+            browsers: [{ name: 'firefox' }],
         });
         expect(/firefox/.test(headers['user-agent'].toLowerCase())).toBeTruthy();
     });
 
     test('Generates headers consistent with operating systems input', () => {
         const headers = headerGenerator.getHeaders({
-            httpVersion: "2",
-            operatingSystems: [ "linux" ]
+            httpVersion: '2',
+            operatingSystems: ['linux'],
         });
         expect(/linux/.test(headers['user-agent'].toLowerCase())).toBeTruthy();
     });
@@ -66,15 +62,35 @@ describe('Generation tests', () => {
     });
 
     test('Throws an error when nothing can be generated', () => {
-        try {        
-            const headers = headerGenerator.getHeaders({
+        try {
+            headerGenerator.getHeaders({
                 browsers: [{
-                    name: "non-existing-browser"
-                }]
+                    name: 'non-existing-browser',
+                }],
             });
             fail("HeaderGenerator didn't throw an error when trying to generate headers for a nonexisting browser.");
         } catch (error) {
-            expect(error).toEqual(new Error('No headers based on this input can be generated. Please relax or change some of the requirements you specified.'));
+            expect(error)
+                .toEqual(
+                    new Error('No headers based on this input can be generated. Please relax or change some of the requirements you specified.'),
+                );
         }
+    });
+
+    describe('Allow using strings instead of complex browser objects', () => {
+        test('in constructor', () => {
+            const generator = new HeaderGenerator({
+                browsers: ['chrome'],
+            });
+            const headers = generator.getHeaders();
+            expect(headers['user-agent'].includes('Chrome')).toBe(true);
+        });
+
+        test('in getHeaders', () => {
+            const headers = headerGenerator.getHeaders({
+                browsers: ['firefox'],
+            });
+            expect(headers['user-agent'].includes('Firefox')).toBe(true);
+        });
     });
 });
