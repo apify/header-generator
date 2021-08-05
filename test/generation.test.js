@@ -17,7 +17,7 @@ describe('Generation tests', () => {
     });
 
     test('Generates unordered headers', () => {
-        const result = headerGenerator.getUnorderedHeaders();
+        const result = headerGenerator.getRawHeadersAndOrder();
 
         expect(result).toBeTruthy();
         expect(result.generatedSample).toBeTruthy();

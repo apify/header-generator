@@ -172,7 +172,7 @@ class HeaderGenerator {
      * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
      */
     getHeaders(options = {}, requestDependentHeaders = {}) {
-        const { generatedSample, order } = this.getUnorderedHeaders(options, requestDependentHeaders);
+        const { generatedSample, order } = this.getRawHeadersAndOrder(options, requestDependentHeaders);
 
         // Order the headers in an order depending on the browser
         const orderedSample = {};
@@ -193,7 +193,7 @@ class HeaderGenerator {
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
      * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
      */
-    getUnorderedHeaders(options = {}, requestDependentHeaders = {}) {
+    getRawHeadersAndOrder(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = JSON.parse(JSON.stringify({ ...this.defaultOptions, ...options }));
         headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
