@@ -1,4 +1,6 @@
+const {inspect} = require('util');
 const HeaderGenerator = require('../src/main');
+const headersOrder = require('../src/data_files/headers-order.json');
 
 function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
     const extractedLocales = [];
@@ -25,7 +27,42 @@ describe('Generation tests', () => {
     });
 
     test('Generates headers', () => {
-        expect(headerGenerator.getHeaders()).toBeTruthy();
+        const headers = headerGenerator.getHeaders();
+
+        let userAgent;
+        for (const [header, value] of Object.entries(headers)) {
+            if (header.toLowerCase() === 'user-agent') {
+                userAgent = value;
+                break;
+            }
+        }
+
+        let browser;
+        if (userAgent.includes('Firefox')) {
+            browser = 'firefox';
+        } else if (userAgent.includes('Chrome')) {
+            browser = 'chrome';
+        } else {
+            browser = 'safari';
+        }
+
+        expect(typeof headers).toBe('object');
+
+        const order = headersOrder[browser];
+
+        let index = -1;
+        for (const header of Object.keys(headers)) {
+            const newIndex = order.indexOf(header);
+
+            const log = `${userAgent}\n${browser}\n${inspect(order)}\n${inspect(headers)}`;
+            if (newIndex === -1) {
+                throw new Error(`Missing entry in order array\n${log}`);
+            } else if (newIndex < index) {
+                throw new Error(`Header ${header} out of order\n${log}`);
+            }
+
+            index = newIndex;
+        }
     });
 
     test('Options from getHeaders override options from the constructor', () => {
