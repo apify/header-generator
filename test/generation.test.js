@@ -13,6 +13,31 @@ function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
     return extractedLocales;
 }
 
+const getUserAgent = (headers) => {
+    let userAgent;
+    for (const [header, value] of Object.entries(headers)) {
+        if (header.toLowerCase() === 'user-agent') {
+            userAgent = value;
+            break;
+        }
+    }
+
+    return userAgent;
+};
+
+const getBrowser = (userAgent) => {
+    let browser;
+    if (userAgent.includes('Firefox')) {
+        browser = 'firefox';
+    } else if (userAgent.includes('Chrome')) {
+        browser = 'chrome';
+    } else {
+        browser = 'safari';
+    }
+
+    return browser;
+};
+
 describe('Generation tests', () => {
     const headerGenerator = new HeaderGenerator({
         httpVersion: '2',
@@ -28,23 +53,8 @@ describe('Generation tests', () => {
 
     test('Generates headers', () => {
         const headers = headerGenerator.getHeaders();
-
-        let userAgent;
-        for (const [header, value] of Object.entries(headers)) {
-            if (header.toLowerCase() === 'user-agent') {
-                userAgent = value;
-                break;
-            }
-        }
-
-        let browser;
-        if (userAgent.includes('Firefox')) {
-            browser = 'firefox';
-        } else if (userAgent.includes('Chrome')) {
-            browser = 'chrome';
-        } else {
-            browser = 'safari';
-        }
+        const userAgent = getUserAgent(headers);
+        const browser = getBrowser(userAgent);
 
         expect(typeof headers).toBe('object');
 
