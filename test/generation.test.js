@@ -16,6 +16,14 @@ describe('Generation tests', () => {
         httpVersion: '2',
     });
 
+    test('Generates unordered headers', () => {
+        const result = headerGenerator.getUnorderedHeaders();
+
+        expect(result).toBeTruthy();
+        expect(result.generatedSample).toBeTruthy();
+        expect(Array.isArray(result.order)).toBe(true);
+    });
+
     test('Generates headers', () => {
         expect(headerGenerator.getHeaders()).toBeTruthy();
     });

@@ -166,12 +166,34 @@ class HeaderGenerator {
     }
 
     /**
-     * Generates a single set of headers using a combination of the default options specified in the constructor
+     * Generates a single set of ordered headers using a combination of the default options specified in the constructor
      * and their possible overrides provided here.
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
      * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
      */
     getHeaders(options = {}, requestDependentHeaders = {}) {
+        const { generatedSample, order } = this.getUnorderedHeaders(options, requestDependentHeaders);
+
+        // Order the headers in an order depending on the browser
+        const orderedSample = {};
+        for (const attribute of order) {
+            if (attribute in generatedSample) {
+                orderedSample[attribute] = generatedSample[attribute];
+            }
+        }
+
+        return orderedSample;
+    }
+
+    /**
+     * Generates a single set of unordered headers using a combination of the default options specified in the constructor
+     * and their possible overrides provided here.
+     * Returns an object with `generatedSample` and `order` properties.
+     * The `order` property is an array with sorted headers that could be used to sort `generatedSample`.
+     * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
+     * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
+     */
+    getUnorderedHeaders(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = JSON.parse(JSON.stringify({ ...this.defaultOptions, ...options }));
         headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
@@ -285,15 +307,10 @@ class HeaderGenerator {
 
         generatedSample = { ...generatedSample, ...requestDependentHeaders };
 
-        // Order the headers in an order depending on the browser
-        const orderedSample = {};
-        for (const attribute of headersOrder[generatedHttpAndBrowser.name]) {
-            if (attribute in generatedSample) {
-                orderedSample[attribute] = generatedSample[attribute];
-            }
-        }
-
-        return orderedSample;
+        return {
+            generatedSample,
+            order: headersOrder[generatedHttpAndBrowser.name],
+        };
     }
 }
 
