@@ -1,4 +1,4 @@
-const {inspect} = require('util');
+const { inspect } = require('util');
 const HeaderGenerator = require('../src/main');
 const headersOrder = require('../src/data_files/headers-order.json');
 
