@@ -66,21 +66,9 @@ HeaderGenerator randomly generates realistic browser headers based on specified 
 
 
 * [HeaderGenerator](#HeaderGenerator)
-    * [`static orderHeaders(headers, [order])`](#HeaderGenerator+orderHeaders)
     * [`new HeaderGenerator(options)`](#new_HeaderGenerator_new)
     * [`.getHeaders(options, requestDependentHeaders)`](#HeaderGenerator+getHeaders)
-
-
-* * *
-
-<a name="HeaderGenerator+orderHeaders"></a>
-
-#### `static orderHeaders(headers, [order])`
-
-| Param | Type | Description |
-| --- | --- | --- |
-| headers | <code>Object</code> | specifies known values of headers dependent on the particular request |
-| order | <code>string[]</code> | an array of ordered header names, optional (will be deducted from `user-agent`) |
+    * [`orderHeaders(headers, [order])`](#HeaderGenerator+orderHeaders)
 
 
 * * *
@@ -139,3 +127,11 @@ and their possible overrides provided here.
 
 * * *
 
+<a name="HeaderGenerator+orderHeaders"></a>
+
+#### `orderHeaders(headers, [order])`
+
+| Param | Type | Description |
+| --- | --- | --- |
+| headers | <code>Object</code> | specifies known values of headers dependent on the particular request |
+| order | <code>string[]</code> | an array of ordered header names, optional (will be deducted from `user-agent`) |

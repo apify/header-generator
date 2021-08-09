@@ -91,7 +91,8 @@ describe('Generation tests', () => {
             'bar',
         ];
 
-        const ordered = HeaderGenerator.orderHeaders(headers, order);
+        const generator = new HeaderGenerator();
+        const ordered = generator.orderHeaders(headers, order);
         expect(ordered).toEqual(headers);
         expect(Object.keys(ordered)).toEqual(order);
     });
@@ -103,7 +104,8 @@ describe('Generation tests', () => {
             Connection: 'keep-alive',
         };
 
-        const ordered = HeaderGenerator.orderHeaders(headers);
+        const generator = new HeaderGenerator();
+        const ordered = generator.orderHeaders(headers);
         expect(ordered).toEqual(headers);
         expect(Object.keys(ordered)).toEqual(['Connection', 'user-agent', 'cookie']);
     });

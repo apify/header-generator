@@ -194,43 +194,6 @@ class HeaderGenerator {
     }
 
     /**
-     *
-     * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
-     * @param {string} a - header a
-     * @param {string} b - header b
-     * @param {string[]} sortedHeaders - array of headers in order
-     * @returns header a or header b, depending which one is more important
-     */
-    static _sort(a, b, sortedHeaders) {
-        const rawA = sortedHeaders.indexOf(a);
-        const rawB = sortedHeaders.indexOf(b);
-        const indexA = rawA === -1 ? Number.POSITIVE_INFINITY : rawA;
-        const indexB = rawB === -1 ? Number.POSITIVE_INFINITY : rawB;
-
-        if (indexA < indexB) {
-            return -1;
-        }
-
-        if (indexA > indexB) {
-            return 1;
-        }
-
-        return 0;
-    }
-
-    /**
-     *
-     * @param {string[]} sortedHeaders - array of headers in order
-     * @returns {Function} - sort function
-     */
-    static createSort(sortedHeaders) {
-        // eslint-disable-next-line no-underscore-dangle
-        const sortWithSortedHeaders = (a, b) => HeaderGenerator._sort(a, b, sortedHeaders);
-
-        return sortWithSortedHeaders;
-    }
-
-    /**
      * Generates a single set of ordered headers using a combination of the default options specified in the constructor
      * and their possible overrides provided here.
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
@@ -349,7 +312,7 @@ class HeaderGenerator {
         }
 
         // Order the headers in an order depending on the browser
-        return HeaderGenerator.orderHeaders({
+        return this.orderHeaders({
             ...generatedSample,
             ...requestDependentHeaders,
         }, headersOrder[generatedHttpAndBrowser.name]);
@@ -360,13 +323,19 @@ class HeaderGenerator {
      * @param {object} headers - request headers
      * @param {string[]} order - array of ordered headers
      */
-    static orderHeaders(headers, order = getOrderFromUserAgent(headers)) {
+    orderHeaders(headers, order = getOrderFromUserAgent(headers)) {
         const orderedSample = {};
-        const keys = Object.keys(headers);
-        const sorted = keys.sort(HeaderGenerator.createSort(order));
 
-        for (const key of sorted) {
-            orderedSample[key] = headers[key];
+        for (const attribute of order) {
+            if (attribute in headers) {
+                orderedSample[attribute] = headers[attribute];
+            }
+        }
+
+        for (const attribute of Object.keys(headers)) {
+            if (!order.includes(attribute)) {
+                orderedSample[attribute] = headers[attribute];
+            }
         }
 
         return orderedSample;
