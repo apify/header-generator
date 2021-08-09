@@ -1,6 +1,7 @@
 const { inspect } = require('util');
 const HeaderGenerator = require('../src/main');
 const headersOrder = require('../src/data_files/headers-order.json');
+const { getUserAgent, getBrowser } = require('../src/utils');
 
 function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
     const extractedLocales = [];
@@ -13,31 +14,6 @@ function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
     return extractedLocales;
 }
 
-const getUserAgent = (headers) => {
-    let userAgent;
-    for (const [header, value] of Object.entries(headers)) {
-        if (header.toLowerCase() === 'user-agent') {
-            userAgent = value;
-            break;
-        }
-    }
-
-    return userAgent;
-};
-
-const getBrowser = (userAgent) => {
-    let browser;
-    if (userAgent.includes('Firefox')) {
-        browser = 'firefox';
-    } else if (userAgent.includes('Chrome')) {
-        browser = 'chrome';
-    } else {
-        browser = 'safari';
-    }
-
-    return browser;
-};
-
 describe('Generation tests', () => {
     const headerGenerator = new HeaderGenerator({
         httpVersion: '2',
@@ -45,6 +21,7 @@ describe('Generation tests', () => {
 
     test('Generates headers', () => {
         const headers = headerGenerator.getHeaders();
+        // This gets the first user-agent header regardless of casing
         const userAgent = getUserAgent(headers);
         const browser = getBrowser(userAgent);
 
@@ -52,14 +29,29 @@ describe('Generation tests', () => {
 
         const order = headersOrder[browser];
 
+        // -1 is the index if an entry doesn't exist, so keep this by default
         let index = -1;
         for (const header of Object.keys(headers)) {
             const newIndex = order.indexOf(header);
 
+            // Make the log readable via `inspect`
             const log = `${userAgent}\n${browser}\n${inspect(order)}\n${inspect(headers)}`;
             if (newIndex === -1) {
+                // If the header isn't in the order list, throw an error
                 throw new Error(`Missing entry in order array\n${log}`);
             } else if (newIndex < index) {
+                // If the index of the header is earlier than the remembered index then throw an error. Example:
+                // given order:
+                // Connection = 0
+                // connection = 1
+                // User-Agent = 2
+                // user-agent = 3
+                //
+                // headers:
+                // User-Agent: ... (remembered index: -1, current index: 2)
+                // Connection: ... (remembered index: 2, current index: 0)
+                //
+                // 0 < 2 so it will throw.
                 throw new Error(`Header ${header} out of order\n${log}`);
             }
 

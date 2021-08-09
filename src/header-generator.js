@@ -11,6 +11,7 @@ const headerNetworkDefinition = require('./data_files/header-network-definition.
 const inputNetworkDefinition = require('./data_files/input-network-definition.json');
 const headersOrder = require('./data_files/headers-order.json');
 const uniqueBrowserStrings = require('./data_files/browser-helper-file.json');
+const { getBrowser, getUserAgent } = require('./utils');
 
 const uniqueBrowsers = [];
 for (const browserString of uniqueBrowserStrings) {
@@ -110,25 +111,8 @@ const headerGeneratorOptionsShape = {
  * @returns {string[]} order
  */
 function getOrderFromUserAgent(headers) {
-    let userAgent = '';
-
-    for (const [key, value] of Object.entries(headers)) {
-        if (key.toLowerCase() === 'user-agent') {
-            userAgent = value;
-            break;
-        }
-    }
-
-    let browser;
-    if (userAgent.includes('Firefox')) {
-        browser = 'firefox';
-    } else if (userAgent.includes('Chrome')) {
-        browser = 'chrome';
-    } else if (userAgent.includes('Safari')) {
-        browser = 'safari';
-    } else {
-        return [];
-    }
+    const userAgent = getUserAgent(headers);
+    const browser = getBrowser(userAgent);
 
     return headersOrder[browser];
 }
