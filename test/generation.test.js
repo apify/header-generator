@@ -86,6 +86,24 @@ describe('Generation tests', () => {
         expect(keys.indexOf('x-custom')).toBe(keys.length - 1);
     });
 
+    test('Orders headers', () => {
+        const headers = {
+            bar: 'foo',
+            foo: 'bar',
+            connection: 'keep-alive',
+        };
+
+        const order = [
+            'connection',
+            'foo',
+            'bar',
+        ];
+
+        const ordered = HeaderGenerator.orderHeaders(headers, order);
+        expect(ordered).toEqual(headers);
+        expect(Object.keys(ordered)).toEqual(order);
+    });
+
     test('Options from getHeaders override options from the constructor', () => {
         const headers = headerGenerator.getHeaders({
             httpVersion: '1',

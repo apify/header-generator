@@ -173,7 +173,7 @@ class HeaderGenerator {
      * @param {string[]} sortedHeaders - array of headers in order
      * @returns header a or header b, depending which one is more important
      */
-    _sort(a, b, sortedHeaders) {
+    static _sort(a, b, sortedHeaders) {
         const rawA = sortedHeaders.indexOf(a);
         const rawB = sortedHeaders.indexOf(b);
         const indexA = rawA === -1 ? Number.POSITIVE_INFINITY : rawA;
@@ -195,8 +195,9 @@ class HeaderGenerator {
      * @param {string[]} sortedHeaders - array of headers in order
      * @returns {Function} - sort function
      */
-    createSort(sortedHeaders) {
-        const sortWithSortedHeaders = (a, b) => this._sort(a, b, sortedHeaders);
+    static createSort(sortedHeaders) {
+        // eslint-disable-next-line no-underscore-dangle
+        const sortWithSortedHeaders = (a, b) => HeaderGenerator._sort(a, b, sortedHeaders);
 
         return sortWithSortedHeaders;
     }
@@ -211,7 +212,7 @@ class HeaderGenerator {
         const { generatedSample, order } = this.generateHeadersAndOrder(options, requestDependentHeaders);
 
         // Order the headers in an order depending on the browser
-        return this.orderHeaders({
+        return HeaderGenerator.orderHeaders({
             ...generatedSample,
             ...requestDependentHeaders,
         }, order);
@@ -222,10 +223,10 @@ class HeaderGenerator {
      * @param {object} headers - request headers
      * @param {string[]} order - array of ordered headers
      */
-    orderHeaders(headers, order) {
+    static orderHeaders(headers, order) {
         const orderedSample = {};
         const keys = Object.keys(headers);
-        const sorted = keys.sort(this.createSort(order));
+        const sorted = keys.sort(HeaderGenerator.createSort(order));
 
         for (const key of sorted) {
             orderedSample[key] = headers[key];
