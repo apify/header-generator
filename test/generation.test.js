@@ -43,14 +43,6 @@ describe('Generation tests', () => {
         httpVersion: '2',
     });
 
-    test('Generates unordered headers', () => {
-        const result = headerGenerator.generateHeadersAndOrder();
-
-        expect(result).toBeTruthy();
-        expect(result.generatedSample).toBeTruthy();
-        expect(Array.isArray(result.order)).toBe(true);
-    });
-
     test('Generates headers', () => {
         const headers = headerGenerator.getHeaders();
         const userAgent = getUserAgent(headers);
@@ -102,6 +94,18 @@ describe('Generation tests', () => {
         const ordered = HeaderGenerator.orderHeaders(headers, order);
         expect(ordered).toEqual(headers);
         expect(Object.keys(ordered)).toEqual(order);
+    });
+
+    test('Orders headers depending on user-agent', () => {
+        const headers = {
+            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
+            cookie: 'test=123',
+            Connection: 'keep-alive',
+        };
+
+        const ordered = HeaderGenerator.orderHeaders(headers);
+        expect(ordered).toEqual(headers);
+        expect(Object.keys(ordered)).toEqual(['Connection', 'user-agent', 'cookie']);
     });
 
     test('Options from getHeaders override options from the constructor', () => {

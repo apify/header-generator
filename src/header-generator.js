@@ -106,6 +106,34 @@ const headerGeneratorOptionsShape = {
 };
 
 /**
+ * @param {object} headers - non-normalized request headers
+ * @returns {string[]} order
+ */
+function getOrderFromUserAgent(headers) {
+    let userAgent = '';
+
+    for (const [key, value] of Object.entries(headers)) {
+        if (key.toLowerCase() === 'user-agent') {
+            userAgent = value;
+            break;
+        }
+    }
+
+    let browser;
+    if (userAgent.includes('Firefox')) {
+        browser = 'firefox';
+    } else if (userAgent.includes('Chrome')) {
+        browser = 'chrome';
+    } else if (userAgent.includes('Safari')) {
+        browser = 'safari';
+    } else {
+        return [];
+    }
+
+    return headersOrder[browser];
+}
+
+/**
  * @typedef BrowserSpecification
  * @param {string} name - One of `chrome`, `firefox` and `safari`.
  * @param {number} minVersion - Minimal version of browser used.
@@ -209,40 +237,6 @@ class HeaderGenerator {
      * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
      */
     getHeaders(options = {}, requestDependentHeaders = {}) {
-        const { generatedSample, order } = this.generateHeadersAndOrder(options, requestDependentHeaders);
-
-        // Order the headers in an order depending on the browser
-        return HeaderGenerator.orderHeaders({
-            ...generatedSample,
-            ...requestDependentHeaders,
-        }, order);
-    }
-
-    /**
-     * Returns a new object that contains ordered headers.
-     * @param {object} headers - request headers
-     * @param {string[]} order - array of ordered headers
-     */
-    static orderHeaders(headers, order) {
-        const orderedSample = {};
-        const keys = Object.keys(headers);
-        const sorted = keys.sort(HeaderGenerator.createSort(order));
-
-        for (const key of sorted) {
-            orderedSample[key] = headers[key];
-        }
-
-        return orderedSample;
-    }
-
-    /**
-     * Generates a single set of unordered headers using a combination of the default options specified in the constructor
-     * and their possible overrides provided here.
-     * Returns an object with `generatedSample` and `order` properties.
-     * The `order` property is an array with sorted headers that could be used to sort `generatedSample`.
-     * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
-     */
-    generateHeadersAndOrder(options = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = JSON.parse(JSON.stringify({ ...this.defaultOptions, ...options }));
         headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
@@ -354,10 +348,28 @@ class HeaderGenerator {
             if (attribute.startsWith('*') || generatedSample[attribute] === MISSING_VALUE_DATASET_TOKEN) delete generatedSample[attribute];
         }
 
-        return {
-            generatedSample,
-            order: headersOrder[generatedHttpAndBrowser.name],
-        };
+        // Order the headers in an order depending on the browser
+        return HeaderGenerator.orderHeaders({
+            ...generatedSample,
+            ...requestDependentHeaders,
+        }, headersOrder[generatedHttpAndBrowser.name]);
+    }
+
+    /**
+     * Returns a new object that contains ordered headers.
+     * @param {object} headers - request headers
+     * @param {string[]} order - array of ordered headers
+     */
+    static orderHeaders(headers, order = getOrderFromUserAgent(headers)) {
+        const orderedSample = {};
+        const keys = Object.keys(headers);
+        const sorted = keys.sort(HeaderGenerator.createSort(order));
+
+        for (const key of sorted) {
+            orderedSample[key] = headers[key];
+        }
+
+        return orderedSample;
     }
 }
 
