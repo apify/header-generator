@@ -44,7 +44,7 @@ describe('Generation tests', () => {
     });
 
     test('Generates unordered headers', () => {
-        const result = headerGenerator.getRawHeadersAndOrder();
+        const result = headerGenerator.generateHeadersAndOrder();
 
         expect(result).toBeTruthy();
         expect(result.generatedSample).toBeTruthy();
@@ -73,6 +73,17 @@ describe('Generation tests', () => {
 
             index = newIndex;
         }
+    });
+
+    test('Accepts custom headers', () => {
+        const headers = headerGenerator.getHeaders({
+            httpVersion: '1',
+        }, {
+            'x-custom': 'foobar',
+        });
+
+        const keys = Object.keys(headers);
+        expect(keys.indexOf('x-custom')).toBe(keys.length - 1);
     });
 
     test('Options from getHeaders override options from the constructor', () => {

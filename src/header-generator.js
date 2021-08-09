@@ -166,20 +166,69 @@ class HeaderGenerator {
     }
 
     /**
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+     * @param {string} a - header a
+     * @param {string} b - header b
+     * @param {string[]} sortedHeaders - array of headers in order
+     * @returns header a or header b, depending which one is more important
+     */
+    _sort(a, b, sortedHeaders) {
+        const rawA = sortedHeaders.indexOf(a);
+        const rawB = sortedHeaders.indexOf(b);
+        const indexA = rawA === -1 ? Number.POSITIVE_INFINITY : rawA;
+        const indexB = rawB === -1 ? Number.POSITIVE_INFINITY : rawB;
+
+        if (indexA < indexB) {
+            return -1;
+        }
+
+        if (indexA > indexB) {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    /**
+     *
+     * @param {string[]} sortedHeaders - array of headers in order
+     * @returns {Function} - sort function
+     */
+    createSort(sortedHeaders) {
+        const sortWithSortedHeaders = (a, b) => this._sort(a, b, sortedHeaders);
+
+        return sortWithSortedHeaders;
+    }
+
+    /**
      * Generates a single set of ordered headers using a combination of the default options specified in the constructor
      * and their possible overrides provided here.
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
      * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
      */
     getHeaders(options = {}, requestDependentHeaders = {}) {
-        const { generatedSample, order } = this.getRawHeadersAndOrder(options, requestDependentHeaders);
+        const { generatedSample, order } = this.generateHeadersAndOrder(options, requestDependentHeaders);
 
         // Order the headers in an order depending on the browser
+        return this.orderHeaders({
+            ...generatedSample,
+            ...requestDependentHeaders,
+        }, order);
+    }
+
+    /**
+     * Returns a new object that contains ordered headers.
+     * @param {object} headers - request headers
+     * @param {string[]} order - array of ordered headers
+     */
+    orderHeaders(headers, order) {
         const orderedSample = {};
-        for (const attribute of order) {
-            if (attribute in generatedSample) {
-                orderedSample[attribute] = generatedSample[attribute];
-            }
+        const keys = Object.keys(headers);
+        const sorted = keys.sort(this.createSort(order));
+
+        for (const key of sorted) {
+            orderedSample[key] = headers[key];
         }
 
         return orderedSample;
@@ -191,9 +240,8 @@ class HeaderGenerator {
      * Returns an object with `generatedSample` and `order` properties.
      * The `order` property is an array with sorted headers that could be used to sort `generatedSample`.
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
-     * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
      */
-    getRawHeadersAndOrder(options = {}, requestDependentHeaders = {}) {
+    generateHeadersAndOrder(options = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = JSON.parse(JSON.stringify({ ...this.defaultOptions, ...options }));
         headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
@@ -239,7 +287,7 @@ class HeaderGenerator {
         }
 
         // Generate the actual headers
-        let generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
+        const generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
 
         // Manually fill the accept-language header with random ordering of the locales from input
         const generatedHttpAndBrowser = prepareHttpBrowserObject(generatedSample[BROWSER_HTTP_NODE_NAME]);
@@ -304,8 +352,6 @@ class HeaderGenerator {
         for (const attribute of Object.keys(generatedSample)) {
             if (attribute.startsWith('*') || generatedSample[attribute] === MISSING_VALUE_DATASET_TOKEN) delete generatedSample[attribute];
         }
-
-        generatedSample = { ...generatedSample, ...requestDependentHeaders };
 
         return {
             generatedSample,
