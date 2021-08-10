@@ -1,4 +1,7 @@
+const { inspect } = require('util');
 const HeaderGenerator = require('../src/main');
+const headersOrder = require('../src/data_files/headers-order.json');
+const { getUserAgent, getBrowser } = require('../src/utils');
 
 function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
     const extractedLocales = [];
@@ -17,7 +20,86 @@ describe('Generation tests', () => {
     });
 
     test('Generates headers', () => {
-        expect(headerGenerator.getHeaders()).toBeTruthy();
+        const headers = headerGenerator.getHeaders();
+        // This gets the first user-agent header regardless of casing
+        const userAgent = getUserAgent(headers);
+        const browser = getBrowser(userAgent);
+
+        expect(typeof headers).toBe('object');
+
+        const order = headersOrder[browser];
+
+        // -1 is the index if an entry doesn't exist, so keep this by default
+        let index = -1;
+        for (const header of Object.keys(headers)) {
+            const newIndex = order.indexOf(header);
+
+            // Make the log readable via `inspect`
+            const log = `${userAgent}\n${browser}\n${inspect(order)}\n${inspect(headers)}`;
+            if (newIndex === -1) {
+                // If the header isn't in the order list, throw an error
+                throw new Error(`Missing entry in order array\n${log}`);
+            } else if (newIndex < index) {
+                // If the index of the header is earlier than the remembered index then throw an error. Example:
+                // given order:
+                // Connection = 0
+                // connection = 1
+                // User-Agent = 2
+                // user-agent = 3
+                //
+                // headers:
+                // User-Agent: ... (remembered index: -1, current index: 2)
+                // Connection: ... (remembered index: 2, current index: 0)
+                //
+                // 0 < 2 so it will throw.
+                throw new Error(`Header ${header} out of order\n${log}`);
+            }
+
+            index = newIndex;
+        }
+    });
+
+    test('Accepts custom headers', () => {
+        const headers = headerGenerator.getHeaders({
+            httpVersion: '1',
+        }, {
+            'x-custom': 'foobar',
+        });
+
+        const keys = Object.keys(headers);
+        expect(keys.indexOf('x-custom')).toBe(keys.length - 1);
+    });
+
+    test('Orders headers', () => {
+        const headers = {
+            bar: 'foo',
+            foo: 'bar',
+            connection: 'keep-alive',
+        };
+
+        const order = [
+            'connection',
+            'foo',
+            'bar',
+        ];
+
+        const generator = new HeaderGenerator();
+        const ordered = generator.orderHeaders(headers, order);
+        expect(ordered).toEqual(headers);
+        expect(Object.keys(ordered)).toEqual(order);
+    });
+
+    test('Orders headers depending on user-agent', () => {
+        const headers = {
+            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
+            cookie: 'test=123',
+            Connection: 'keep-alive',
+        };
+
+        const generator = new HeaderGenerator();
+        const ordered = generator.orderHeaders(headers);
+        expect(ordered).toEqual(headers);
+        expect(Object.keys(ordered)).toEqual(['Connection', 'user-agent', 'cookie']);
     });
 
     test('Options from getHeaders override options from the constructor', () => {

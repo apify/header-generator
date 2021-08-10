@@ -11,6 +11,7 @@ const headerNetworkDefinition = require('./data_files/header-network-definition.
 const inputNetworkDefinition = require('./data_files/input-network-definition.json');
 const headersOrder = require('./data_files/headers-order.json');
 const uniqueBrowserStrings = require('./data_files/browser-helper-file.json');
+const { getBrowser, getUserAgent } = require('./utils');
 
 const uniqueBrowsers = [];
 for (const browserString of uniqueBrowserStrings) {
@@ -106,6 +107,18 @@ const headerGeneratorOptionsShape = {
 };
 
 /**
+ * @param {object} headers - non-normalized request headers
+ * @returns {string[]} order
+ * @private
+ */
+function getOrderFromUserAgent(headers) {
+    const userAgent = getUserAgent(headers);
+    const browser = getBrowser(userAgent);
+
+    return headersOrder[browser];
+}
+
+/**
  * @typedef BrowserSpecification
  * @param {string} name - One of `chrome`, `firefox` and `safari`.
  * @param {number} minVersion - Minimal version of browser used.
@@ -166,7 +179,7 @@ class HeaderGenerator {
     }
 
     /**
-     * Generates a single set of headers using a combination of the default options specified in the constructor
+     * Generates a single set of ordered headers using a combination of the default options specified in the constructor
      * and their possible overrides provided here.
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
      * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
@@ -217,7 +230,7 @@ class HeaderGenerator {
         }
 
         // Generate the actual headers
-        let generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
+        const generatedSample = this.headerGeneratorNetwork.generateSample(inputSample);
 
         // Manually fill the accept-language header with random ordering of the locales from input
         const generatedHttpAndBrowser = prepareHttpBrowserObject(generatedSample[BROWSER_HTTP_NODE_NAME]);
@@ -283,13 +296,30 @@ class HeaderGenerator {
             if (attribute.startsWith('*') || generatedSample[attribute] === MISSING_VALUE_DATASET_TOKEN) delete generatedSample[attribute];
         }
 
-        generatedSample = { ...generatedSample, ...requestDependentHeaders };
-
         // Order the headers in an order depending on the browser
+        return this.orderHeaders({
+            ...generatedSample,
+            ...requestDependentHeaders,
+        }, headersOrder[generatedHttpAndBrowser.name]);
+    }
+
+    /**
+     * Returns a new object that contains ordered headers.
+     * @param {object} headers - specifies known values of headers dependent on the particular request
+     * @param {string[]} order - an array of ordered header names, optional (will be deducted from `user-agent`)
+     */
+    orderHeaders(headers, order = getOrderFromUserAgent(headers)) {
         const orderedSample = {};
-        for (const attribute of headersOrder[generatedHttpAndBrowser.name]) {
-            if (attribute in generatedSample) {
-                orderedSample[attribute] = generatedSample[attribute];
+
+        for (const attribute of order) {
+            if (attribute in headers) {
+                orderedSample[attribute] = headers[attribute];
+            }
+        }
+
+        for (const attribute of Object.keys(headers)) {
+            if (!order.includes(attribute)) {
+                orderedSample[attribute] = headers[attribute];
             }
         }
 
