@@ -109,6 +109,7 @@ const headerGeneratorOptionsShape = {
 /**
  * @param {object} headers - non-normalized request headers
  * @returns {string[]} order
+ * @private
  */
 function getOrderFromUserAgent(headers) {
     const userAgent = getUserAgent(headers);
@@ -304,8 +305,8 @@ class HeaderGenerator {
 
     /**
      * Returns a new object that contains ordered headers.
-     * @param {object} headers - request headers
-     * @param {string[]} order - array of ordered headers
+     * @param {object} headers - specifies known values of headers dependent on the particular request
+     * @param {string[]} order - an array of ordered header names, optional (will be deducted from `user-agent`)
      */
     orderHeaders(headers, order = getOrderFromUserAgent(headers)) {
         const orderedSample = {};
