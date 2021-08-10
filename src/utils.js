@@ -11,6 +11,10 @@ const getUserAgent = (headers) => {
 };
 
 const getBrowser = (userAgent) => {
+    if (!userAgent) {
+        return;
+    }
+
     let browser;
     if (userAgent.includes('Firefox')) {
         browser = 'firefox';

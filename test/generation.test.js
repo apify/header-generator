@@ -102,6 +102,18 @@ describe('Generation tests', () => {
         expect(Object.keys(ordered)).toEqual(['Connection', 'user-agent', 'cookie']);
     });
 
+    test('Orders headers works without user-agent', () => {
+        const headers = {
+            cookie: 'test=123',
+            Connection: 'keep-alive',
+        };
+
+        const generator = new HeaderGenerator();
+        const ordered = generator.orderHeaders(headers);
+        expect(ordered).toEqual(headers);
+        expect(Object.keys(ordered)).toEqual(Object.keys(headers));
+    });
+
     test('Options from getHeaders override options from the constructor', () => {
         const headers = headerGenerator.getHeaders({
             httpVersion: '1',

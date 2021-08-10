@@ -115,6 +115,10 @@ function getOrderFromUserAgent(headers) {
     const userAgent = getUserAgent(headers);
     const browser = getBrowser(userAgent);
 
+    if (!browser) {
+        return [];
+    }
+
     return headersOrder[browser];
 }
 
