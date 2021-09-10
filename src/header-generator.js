@@ -248,7 +248,7 @@ class HeaderGenerator {
         let highLevelLocales = [];
         for (const locale of headerOptions.locales) {
             if (!locale.includes('-')) {
-                highLevelLocales.push();
+                highLevelLocales.push(locale);
             }
         }
 
@@ -279,7 +279,7 @@ class HeaderGenerator {
 
         let acceptLanguageFieldValue = localesInAddingOrder[0];
         for (let x = 1; x < localesInAddingOrder.length; x++) {
-            acceptLanguageFieldValue += `,${localesInAddingOrder[x]};${1 - x * 0.1}`;
+            acceptLanguageFieldValue += `,${localesInAddingOrder[x]};q=${1 - x * 0.1}`;
         }
 
         generatedSample[acceptLanguageFieldName] = acceptLanguageFieldValue;
