@@ -55,14 +55,8 @@ exports.MODERN_MACOS_CHROME = {
     operatingSystems: ['macos'],
 };
 
-exports.MODERN_IOS = {
-    ...MODERN_MOBILE,
-    operatingSystems: ['ios'],
-
-};
-
 exports.MODERN_ANDROID = {
     ...MODERN_MOBILE,
-    operatingSystems: ['ios'],
+    operatingSystems: ['android'],
 
 };
