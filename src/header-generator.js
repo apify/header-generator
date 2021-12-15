@@ -11,7 +11,8 @@ const headerNetworkDefinition = require('./data_files/header-network-definition.
 const inputNetworkDefinition = require('./data_files/input-network-definition.json');
 const headersOrder = require('./data_files/headers-order.json');
 const uniqueBrowserStrings = require('./data_files/browser-helper-file.json');
-const { getBrowser, getUserAgent } = require('./utils');
+const { getBrowser, getUserAgent, getBrowsersFromQuery } = require('./utils');
+const { SUPPORTED_BROWSERS } = require('./constants');
 
 const uniqueBrowsers = [];
 for (const browserString of uniqueBrowserStrings) {
@@ -104,6 +105,7 @@ const headerGeneratorOptionsShape = {
     devices: ow.optional.array.ofType(ow.string),
     locales: ow.optional.array.ofType(ow.string),
     httpVersion: ow.optional.string,
+    browserListQuery: ow.optional.string,
 };
 
 /**
@@ -130,10 +132,14 @@ function getOrderFromUserAgent(headers) {
  * @param {string} httpVersion - Http version to be used to generate headers (the headers differ depending on the version).
  *  Either 1 or 2. If none specified the httpVersion specified in `HeaderGeneratorOptions` is used.
  */
+
 /**
  * @typedef HeaderGeneratorOptions
  * @param {Array<BrowserSpecification|string>} browsers - List of BrowserSpecifications to generate the headers for,
  *  or one of `chrome`, `firefox` and `safari`.
+ * @param {string} browserListQuery - Browser generation query based on the real world data.
+ *  For more info see the [query docs](https://github.com/browserslist/browserslist#full-list).
+ *  If `browserListQuery` is passed the `browsers` array is ignored.
  * @param {Array<string>} operatingSystems - List of operating systems to generate the headers for.
  *  The options are `windows`, `macos`, `linux`, `android` and `ios`.
  * @param {Array<string>} devices - List of devices to generate the headers for. Options are `desktop` and `mobile`.
@@ -155,15 +161,16 @@ class HeaderGenerator {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         // Use a default setup when the necessary values are not provided
         const {
-            browsers = ['chrome', 'firefox', 'safari'],
+            browsers = SUPPORTED_BROWSERS,
             operatingSystems = ['windows', 'macos', 'linux', 'android', 'ios'],
             devices = ['desktop'],
             locales = ['en-US'],
             httpVersion = '2',
+            browserListQuery,
         } = options;
-
+        this.browserListQuery = browserListQuery;
         this.globalOptions = {
-            browsers: this._prepareBrowsersConfig(browsers, httpVersion),
+            browsers: this._prepareBrowsersConfig(browsers, browserListQuery, httpVersion),
             operatingSystems,
             devices,
             locales,
@@ -183,7 +190,7 @@ class HeaderGenerator {
     getHeaders(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = JSON.parse(JSON.stringify({ ...this.globalOptions, ...options }));
-        headerOptions.browsers = this._prepareBrowsersConfig(headerOptions.browsers, headerOptions.httpVersion);
+        headerOptions.browsers = this._prepareBrowsersConfig(headerOptions.browsers, headerOptions.browserListQuery, headerOptions.httpVersion);
 
         const possibleAttributeValues = {};
 
@@ -313,8 +320,14 @@ class HeaderGenerator {
         return orderedSample;
     }
 
-    _prepareBrowsersConfig(browsers, httpVersion) {
-        return browsers.map((browser) => {
+    _prepareBrowsersConfig(browsers, browserListQuery, httpVersion) {
+        let finalBrowsers = browsers;
+
+        if (browserListQuery) {
+            finalBrowsers = getBrowsersFromQuery(browserListQuery);
+        }
+
+        return finalBrowsers.map((browser) => {
             if (typeof browser === 'string') {
                 return { name: browser, httpVersion };
             }
