@@ -153,30 +153,22 @@ class HeaderGenerator {
      */
     constructor(options = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
-        this.defaultOptions = JSON.parse(JSON.stringify(options));
         // Use a default setup when the necessary values are not provided
-        if (!this.defaultOptions.locales) {
-            this.defaultOptions.locales = ['en-US'];
-        }
-        if (!this.defaultOptions.httpVersion) {
-            this.defaultOptions.httpVersion = '2';
-        }
-        if (!this.defaultOptions.browsers) {
-            this.defaultOptions.browsers = [
-                { name: 'chrome' },
-                { name: 'firefox' },
-                { name: 'safari' },
-            ];
-        }
-        if (!this.defaultOptions.operatingSystems) {
-            this.defaultOptions.operatingSystems = [
-                'windows',
-                'macos',
-                'linux',
-                'android',
-                'ios',
-            ];
-        }
+        const {
+            browsers = ['chrome', 'firefox', 'safari'],
+            operatingSystems = ['windows', 'macos', 'linux', 'android', 'ios'],
+            devices = ['desktop'],
+            locales = ['en-US'],
+            httpVersion = '2',
+        } = options;
+
+        this.globalOptions = {
+            browsers: this._prepareBrowsersConfig(browsers, httpVersion),
+            operatingSystems,
+            devices,
+            locales,
+            httpVersion,
+        };
 
         this.inputGeneratorNetwork = new BayesianNetwork(inputNetworkDefinition);
         this.headerGeneratorNetwork = new BayesianNetwork(headerNetworkDefinition);
@@ -190,17 +182,8 @@ class HeaderGenerator {
      */
     getHeaders(options = {}, requestDependentHeaders = {}) {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
-        const headerOptions = JSON.parse(JSON.stringify({ ...this.defaultOptions, ...options }));
-        headerOptions.browsers = headerOptions.browsers.map((browserObject) => {
-            if (typeof browserObject === 'string') {
-                browserObject = { name: browserObject };
-            }
-
-            if (!browserObject.httpVersion) {
-                browserObject.httpVersion = headerOptions.httpVersion;
-            }
-            return browserObject;
-        });
+        const headerOptions = JSON.parse(JSON.stringify({ ...this.globalOptions, ...options }));
+        headerOptions.browsers = this._prepareBrowsersConfig(headerOptions.browsers, headerOptions.httpVersion);
 
         const possibleAttributeValues = {};
 
@@ -328,6 +311,17 @@ class HeaderGenerator {
         }
 
         return orderedSample;
+    }
+
+    _prepareBrowsersConfig(browsers, httpVersion) {
+        return browsers.map((browser) => {
+            if (typeof browser === 'string') {
+                return { name: browser, httpVersion };
+            }
+
+            browser.httpVersion = httpVersion;
+            return browser;
+        });
     }
 }
 
