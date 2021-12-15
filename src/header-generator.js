@@ -319,6 +319,7 @@ class HeaderGenerator {
                 return { name: browser, httpVersion };
             }
 
+            browser.httpVersion = httpVersion;
             return browser;
         });
     }
