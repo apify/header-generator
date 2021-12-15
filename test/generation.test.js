@@ -171,6 +171,14 @@ describe('Generation tests', () => {
         }
     });
 
+    test('Supports browserListQuery generation', () => {
+        const headers = headerGenerator.getHeaders({
+            browserListQuery: 'last 15 firefox versions',
+            httpVersion: '2',
+        });
+        expect(headers['user-agent'].includes('Firefox')).toBeTruthy();
+    });
+
     describe('Allow using strings instead of complex browser objects', () => {
         test('in constructor', () => {
             const generator = new HeaderGenerator({
