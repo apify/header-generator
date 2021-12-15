@@ -34,7 +34,8 @@ const getBrowsersWithVersions = (browserList) => {
     const browsersWithVersions = {};
 
     for (const browserDefinition of browserList) {
-        const [browser, version] = browserDefinition.split(' ');
+        const [browser, versionString] = browserDefinition.split(' ');
+        const version = parseInt(versionString, 10);
         if (!SUPPORTED_BROWSERS.includes(browser)) {
             // eslint-disable-next-line no-continue
             continue;
