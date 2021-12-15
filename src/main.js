@@ -1,3 +1,7 @@
 const HeaderGenerator = require('./header-generator');
+const PRESETS = require('./presets');
 
-module.exports = HeaderGenerator;
+module.exports = {
+    HeaderGenerator,
+    PRESETS,
+};
