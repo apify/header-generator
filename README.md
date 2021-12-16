@@ -5,6 +5,7 @@ NodeJs package for generating browser-like headers.
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [Presets](#presets)
 - [Result example](#result-example)
 - [API Reference](#api-reference)
 
@@ -15,7 +16,7 @@ Run the `npm install header-generator` command. No further setup is needed after
 ## Usage
 To use the generator, you need to create an instance of the `HeaderGenerator` class which is exported from this package. Constructor of this class accepts a `HeaderGeneratorOptions` object, which can be used to globally specify what kind of headers you are looking for: 
 ```js
-const HeaderGenerator = require('header-generator');
+const { HeaderGenerator } = require('header-generator');
 let headerGenerator = new HeaderGenerator({
         browsers: [
             {name: "firefox", minVersion: 80},
@@ -40,6 +41,15 @@ let headers = headersGenerator.getHeaders({
 });
 ```
 This method always generates a random realistic set of headers, excluding the request dependant headers, which need to be filled in afterwards. Since the generation is randomized, multiple calls to this method with the same parameters can generate multiple different outputs.
+
+## Presets
+Presets are setting templates for common use cases. It saves time writing the same configuration over and over.
+```js
+const { HeaderGenerator, PRESETS } = require('header-generator');
+let headerGenerator = new HeaderGenerator(PRESETS.MODERN_WINDOWS_CHROME);
+```
+
+This preset will fill the configuration for the latest five versions of chrome for windows desktops. Checkout the available presets list here @TODO: LINK.
 ## Result example
 A result that can be generated for the usage example above:
 ```json

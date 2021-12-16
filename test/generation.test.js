@@ -1,5 +1,5 @@
 const { inspect } = require('util');
-const HeaderGenerator = require('../src/main');
+const { HeaderGenerator } = require('../src/main');
 const headersOrder = require('../src/data_files/headers-order.json');
 const { getUserAgent, getBrowser } = require('../src/utils');
 
