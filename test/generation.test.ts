@@ -1,9 +1,9 @@
 const { inspect } = require('util');
-const { HeaderGenerator } = require('../src/main');
-const headersOrder = require('../src/data_files/headers-order.json');
-const { getUserAgent, getBrowser } = require('../src/utils');
+const { HeaderGenerator } = require('../dist/index');
+const headersOrder = require('../dist/data_files/headers-order.json');
+const { getUserAgent, getBrowser } = require('../dist/utils');
 
-function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
+function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader: string): string[] {
     const extractedLocales = [];
     const localesWithWeight = acceptLanguageHeader.split(',');
     for (const localeWithWeight of localesWithWeight) {
@@ -19,7 +19,7 @@ describe('Generation tests', () => {
         httpVersion: '2',
     });
 
-    test('Generates headers', () => {
+    test('Generates headers basic', () => {
         const headers = headerGenerator.getHeaders();
         // This gets the first user-agent header regardless of casing
         const userAgent = getUserAgent(headers);
