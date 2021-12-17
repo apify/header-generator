@@ -2,7 +2,12 @@
 import { BayesianNetwork } from 'generative-bayesian-network';
 
 import ow from 'ow';
-import { getBrowser, getUserAgent, getBrowsersFromQuery } from './utils';
+import {
+    getBrowser,
+    getUserAgent,
+    getBrowsersFromQuery,
+    shuffleArray,
+} from './utils';
 
 import {
     SUPPORTED_BROWSERS,
@@ -13,6 +18,8 @@ import {
     SUPPORTED_OPERATING_SYSTEMS,
     SUPPORTED_DEVICES,
     SUPPORTED_HTTP_VERSIONS,
+    HTTP1_SEC_FETCH_ATTRIBUTES,
+    HTTP2_SEC_FETCH_ATTRIBUTES,
 } from './constants';
 
 import headerNetworkDefinition from './data_files/header-network-definition.json';
@@ -20,39 +27,6 @@ import headerNetworkDefinition from './data_files/header-network-definition.json
 import inputNetworkDefinition from './data_files/input-network-definition.json';
 import headersOrder from './data_files/headers-order.json';
 import uniqueBrowserStrings from './data_files/browser-helper-file.json';
-
-const http2SecFetchAttributes = {
-    mode: 'sec-fetch-mode',
-    dest: 'sec-fetch-dest',
-    site: 'sec-fetch-site',
-    user: 'sec-fetch-user',
-};
-
-const http1SecFetchAttributes = {
-    mode: 'Sec-Fetch-Mode',
-    dest: 'Sec-Fetch-Dest',
-    site: 'Sec-Fetch-Site',
-    user: 'Sec-Fetch-User',
-};
-
-/*
- * @private
- */
-function shuffleArray(array: any[]) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-
-    return array;
-}
-
-/*
- * @private
- */
-function browserVersionIsLesserOrEquals(browserVersionL: number[], browserVersionR: number[]) {
-    return browserVersionL[0] <= browserVersionR[0];
-}
 
 const browserSpecificationShape = {
     name: ow.string,
@@ -192,11 +166,11 @@ export class HeaderGenerator {
 
         // Manually fill the accept-language header with random ordering of the locales from input
         const generatedHttpAndBrowser = this._prepareHttpBrowserObject(generatedSample[BROWSER_HTTP_NODE_NAME]);
-        let secFetchAttributeNames = http2SecFetchAttributes;
+        let secFetchAttributeNames = HTTP2_SEC_FETCH_ATTRIBUTES;
         let acceptLanguageFieldName = 'accept-language';
         if (generatedHttpAndBrowser.httpVersion !== '2') {
             acceptLanguageFieldName = 'Accept-Language';
-            secFetchAttributeNames = http1SecFetchAttributes;
+            secFetchAttributeNames = HTTP1_SEC_FETCH_ATTRIBUTES;
         }
 
         generatedSample[acceptLanguageFieldName] = this._getAcceptLanguageField(headerOptions.locales);
@@ -273,8 +247,8 @@ export class HeaderGenerator {
         for (const browser of browsers) {
             for (const browserOption of this.uniqueBrowsers) {
                 if (browser.name === browserOption.name) {
-                    if ((!browser.minVersion || browserVersionIsLesserOrEquals([browser.minVersion], browserOption.version))
-                        && (!browser.maxVersion || browserVersionIsLesserOrEquals(browserOption.version, [browser.maxVersion]))
+                    if ((!browser.minVersion || this._browserVersionIsLesserOrEquals([browser.minVersion], browserOption.version))
+                        && (!browser.maxVersion || this._browserVersionIsLesserOrEquals(browserOption.version, [browser.maxVersion]))
                         && browser.httpVersion === browserOption.httpVersion) {
                         browserHttpOptions.push(browserOption.completeString);
                     }
@@ -404,5 +378,9 @@ export class HeaderGenerator {
         }
 
         return (headersOrder as Record<string, any>)[browser];
+    }
+
+    private _browserVersionIsLesserOrEquals(browserVersionL: number[], browserVersionR: number[]) {
+        return browserVersionL[0] <= browserVersionR[0];
     }
 }
