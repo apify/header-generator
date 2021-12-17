@@ -1,3 +1,4 @@
+import { HeaderGeneratorOptions } from '../dist/header-generator';
 import { HeaderGenerator, PRESETS } from '../dist/index';
 
 describe('presets', () => {
@@ -5,7 +6,7 @@ describe('presets', () => {
     const presets = Object.entries(PRESETS);
 
     test.each(presets)('Should work with %s', (_name, config) => {
-        const headers = generator.getHeaders(config);
+        const headers = generator.getHeaders(config as HeaderGeneratorOptions);
         expect(headers['user-agent']).toBeDefined();
     });
 });
