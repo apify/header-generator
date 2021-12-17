@@ -1,7 +1,7 @@
-const { inspect } = require('util');
-const { HeaderGenerator } = require('../dist/index');
-const headersOrder = require('../dist/data_files/headers-order.json');
-const { getUserAgent, getBrowser } = require('../dist/utils');
+import { inspect } from 'util';
+import { HeaderGenerator } from '../dist/index';
+import headersOrder from '../dist/data_files/headers-order.json';
+import { getUserAgent, getBrowser } from '../dist/utils';
 
 function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader: string): string[] {
     const extractedLocales = [];

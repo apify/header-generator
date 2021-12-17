@@ -1,4 +1,4 @@
-const { HeaderGenerator, PRESETS } = require('../dist/index');
+import { HeaderGenerator, PRESETS } from '../dist/index';
 
 describe('presets', () => {
     const generator = new HeaderGenerator();
