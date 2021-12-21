@@ -1,6 +1,6 @@
-const browsersList = require('browserslist');
+import browsersList from 'browserslist';
 
-const { getBrowsersFromQuery } = require('../src/utils');
+import { getBrowsersFromQuery } from '../dist/utils';
 
 describe('browserList generation', () => {
     test('Should work with simple query', () => {

@@ -1,9 +1,10 @@
-const { inspect } = require('util');
-const { HeaderGenerator } = require('../src/main');
-const headersOrder = require('../src/data_files/headers-order.json');
-const { getUserAgent, getBrowser } = require('../src/utils');
+import { inspect } from 'util';
+import { HeaderGenerator } from '../dist/index';
+import headersOrder from '../dist/data_files/headers-order.json';
+import { getUserAgent, getBrowser } from '../dist/utils';
+import { HeaderGeneratorOptions } from '../dist/header-generator';
 
-function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader) {
+function extractLocalesFromAcceptLanguageHeader(acceptLanguageHeader: string): string[] {
     const extractedLocales = [];
     const localesWithWeight = acceptLanguageHeader.split(',');
     for (const localeWithWeight of localesWithWeight) {
@@ -19,7 +20,7 @@ describe('Generation tests', () => {
         httpVersion: '2',
     });
 
-    test('Generates headers', () => {
+    test('Generates headers basic', () => {
         const headers = headerGenerator.getHeaders();
         // This gets the first user-agent header regardless of casing
         const userAgent = getUserAgent(headers);
@@ -27,7 +28,7 @@ describe('Generation tests', () => {
 
         expect(typeof headers).toBe('object');
 
-        const order = headersOrder[browser];
+        const order = headersOrder[browser!];
 
         // -1 is the index if an entry doesn't exist, so keep this by default
         let index = -1;
@@ -161,7 +162,7 @@ describe('Generation tests', () => {
                 browsers: [{
                     name: 'non-existing-browser',
                 }],
-            });
+            } as unknown as HeaderGeneratorOptions);
             fail("HeaderGenerator didn't throw an error when trying to generate headers for a nonexisting browser.");
         } catch (error) {
             expect(error)
