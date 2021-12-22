@@ -52,30 +52,40 @@ export const headerGeneratorOptionsShape = {
  *  Either 1 or 2. If none specified the httpVersion specified in `HeaderGeneratorOptions` is used.
  */
 
+export type HttpVersion = typeof SUPPORTED_HTTP_VERSIONS[number];
+
+export type Device = typeof SUPPORTED_DEVICES[number];
+
+export type OperatingSystem = typeof SUPPORTED_OPERATING_SYSTEMS[number];
+
+export type BrowserName = typeof SUPPORTED_BROWSERS[number];
+
 export interface BrowserSpecification {
-    name: typeof SUPPORTED_BROWSERS[number];
+    name: BrowserName ;
     minVersion?: number;
     maxVersion?: number;
-    httpVersion?: typeof SUPPORTED_HTTP_VERSIONS[number];
+    httpVersion?: HttpVersion;
 }
 
-export type BrowsersType = BrowserSpecification[] | (typeof SUPPORTED_BROWSERS[number])[];
+export type BrowsersType = BrowserSpecification[] | BrowserName[];
 
 export interface HeaderGeneratorOptions {
     browsers: BrowsersType;
     browserListQuery: string;
-    operatingSystems: (typeof SUPPORTED_OPERATING_SYSTEMS[number])[];
-    devices: (typeof SUPPORTED_DEVICES[number])[];
+    operatingSystems: OperatingSystem[];
+    devices: Device[];
     locales: string[];
-    httpVersion: typeof SUPPORTED_HTTP_VERSIONS[number];
+    httpVersion: HttpVersion;
 }
 
 export type HttpBrowserObject = {
-    name: BrowserSpecification['name'] | typeof MISSING_VALUE_DATASET_TOKEN,
-    version: any[],
-    completeString: string
-    httpVersion: HeaderGeneratorOptions['httpVersion']
+    name: BrowserName | typeof MISSING_VALUE_DATASET_TOKEN;
+    version: any[];
+    completeString: string;
+    httpVersion: HttpVersion;
 }
+
+export type Headers = Record<string, string>
 
 /**
  * @typedef HeaderGeneratorOptions
@@ -106,7 +116,7 @@ export class HeaderGenerator {
 
     private headerGeneratorNetwork: any;
 
-    private uniqueBrowsers: HttpBrowserObject[]
+    private uniqueBrowsers: HttpBrowserObject[];
 
     /**
      * @param {HeaderGeneratorOptions} options - default header generation options used unless overridden
@@ -116,7 +126,7 @@ export class HeaderGenerator {
         // Use a default setup when the necessary values are not provided
         const {
             browsers = SUPPORTED_BROWSERS,
-            operatingSystems = SUPPORTED_OPERATING_SYSTEMS as unknown as HeaderGeneratorOptions['operatingSystems'],
+            operatingSystems = SUPPORTED_OPERATING_SYSTEMS as unknown as OperatingSystem[],
             devices = [SUPPORTED_DEVICES[0]],
             locales = ['en-US'],
             httpVersion = '2',
@@ -149,7 +159,7 @@ export class HeaderGenerator {
      * @param {HeaderGeneratorOptions} options - specifies options that should be overridden for this one call
      * @param {Object} requestDependentHeaders - specifies known values of headers dependent on the particular request
      */
-    getHeaders(options: Partial<HeaderGeneratorOptions> = {}, requestDependentHeaders: Record<string, string> = {}) {
+    getHeaders(options: Partial<HeaderGeneratorOptions> = {}, requestDependentHeaders: Headers = {}): Headers {
         ow(options, 'HeaderGeneratorOptions', ow.object.exactShape(headerGeneratorOptionsShape));
         const headerOptions = { ...this.globalOptions, ...options };
         const possibleAttributeValues = this._getPossibleAttributeValues(headerOptions);
@@ -166,7 +176,7 @@ export class HeaderGenerator {
 
         // Manually fill the accept-language header with random ordering of the locales from input
         const generatedHttpAndBrowser = this._prepareHttpBrowserObject(generatedSample[BROWSER_HTTP_NODE_NAME]);
-        let secFetchAttributeNames = HTTP2_SEC_FETCH_ATTRIBUTES;
+        let secFetchAttributeNames: typeof HTTP2_SEC_FETCH_ATTRIBUTES | typeof HTTP1_SEC_FETCH_ATTRIBUTES = HTTP2_SEC_FETCH_ATTRIBUTES;
         let acceptLanguageFieldName = 'accept-language';
         if (generatedHttpAndBrowser.httpVersion !== '2') {
             acceptLanguageFieldName = 'Accept-Language';
@@ -203,8 +213,8 @@ export class HeaderGenerator {
      * @param {object} headers - specifies known values of headers dependent on the particular request
      * @param {string[]} order - an array of ordered header names, optional (will be deducted from `user-agent`)
      */
-    orderHeaders(headers: Record<string, string>, order = this._getOrderFromUserAgent(headers)) {
-        const orderedSample: Record<string, string> = {};
+    orderHeaders(headers: Headers, order = this._getOrderFromUserAgent(headers)): Headers {
+        const orderedSample: Headers = {};
 
         for (const attribute of order) {
             if (attribute in headers) {
@@ -224,7 +234,7 @@ export class HeaderGenerator {
     private _prepareBrowsersConfig(
         browsers?: BrowsersType,
         browserListQuery?: string,
-        httpVersion?: typeof SUPPORTED_HTTP_VERSIONS[number],
+        httpVersion?: HttpVersion,
     ): BrowserSpecification[] {
         let finalBrowsers = browsers;
 

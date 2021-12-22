@@ -1,6 +1,6 @@
 import browsersList from 'browserslist';
 import { SUPPORTED_BROWSERS } from './constants';
-import { BrowserSpecification } from './header-generator';
+import { BrowserName, BrowserSpecification } from './header-generator';
 
 export const getUserAgent = (headers: Record<string, string>): string | undefined => {
     for (const [header, value] of Object.entries(headers)) {
@@ -11,7 +11,7 @@ export const getUserAgent = (headers: Record<string, string>): string | undefine
     return undefined;
 };
 
-export const getBrowser = (userAgent?: string): BrowserSpecification['name'] | undefined => {
+export const getBrowser = (userAgent?: string): BrowserName | undefined => {
     if (!userAgent) {
         return;
     }
@@ -25,15 +25,15 @@ export const getBrowser = (userAgent?: string): BrowserSpecification['name'] | u
         browser = 'safari';
     }
 
-    return browser as BrowserSpecification['name'];
+    return browser as BrowserName;
 };
 
-const getBrowsersWithVersions = (browserList: string[]): Record<BrowserSpecification['name'], number[]> => {
+const getBrowsersWithVersions = (browserList: string[]): Record<BrowserName, number[]> => {
     const browsersWithVersions: Record<string, number[]> = {};
 
     for (const browserDefinition of browserList) {
         const [browserSplit, versionString] = browserDefinition.split(' ');
-        const browser = browserSplit as BrowserSpecification['name'];
+        const browser = browserSplit as BrowserName;
         const version = parseInt(versionString, 10);
         if (!SUPPORTED_BROWSERS.includes(browser)) {
             // eslint-disable-next-line no-continue
@@ -50,7 +50,7 @@ const getBrowsersWithVersions = (browserList: string[]): Record<BrowserSpecifica
     return browsersWithVersions;
 };
 
-const getOptimizedVersionDistribution = (browsersWithVersions: Record<BrowserSpecification['name'], number[]>): BrowserSpecification[] => {
+const getOptimizedVersionDistribution = (browsersWithVersions: Record<BrowserName, number[]>): BrowserSpecification[] => {
     const finalOptimizedBrowsers: BrowserSpecification[] = [];
 
     Object.entries(browsersWithVersions).forEach(([browser, versions]) => {
@@ -64,7 +64,7 @@ const getOptimizedVersionDistribution = (browsersWithVersions: Record<BrowserSpe
 
             if (isNextVersionGap || isLast) {
                 finalOptimizedBrowsers.push({
-                    name: browser as BrowserSpecification['name'],
+                    name: browser as BrowserName,
                     minVersion: lowestVersionSoFar,
                     maxVersion: version,
                 });

@@ -3,8 +3,6 @@
     "compilerOptions": {
         "outDir": "dist",
         "skipLibCheck": true,
-        "resolveJsonModule": true,
-        "esModuleInterop": true,
     },
     "include": [
         "./src"
