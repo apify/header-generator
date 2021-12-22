@@ -49,7 +49,7 @@ const { HeaderGenerator, PRESETS } = require('header-generator');
 let headerGenerator = new HeaderGenerator(PRESETS.MODERN_WINDOWS_CHROME);
 ```
 
-This preset will fill the configuration for the latest five versions of chrome for windows desktops. Checkout the available presets list here @TODO: LINK.
+This preset will fill the configuration for the latest five versions of chrome for windows desktops. Checkout the available presets list [here](https://github.com/apify/header-generator/blob/master/src/presets.ts).
 ## Result example
 A result that can be generated for the usage example above:
 ```json
