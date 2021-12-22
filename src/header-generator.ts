@@ -35,7 +35,7 @@ const browserSpecificationShape = {
     httpVersion: ow.optional.string,
 };
 
-const headerGeneratorOptionsShape = {
+export const headerGeneratorOptionsShape = {
     browsers: ow.optional.array.ofType(ow.any(ow.object.exactShape(browserSpecificationShape), ow.string)),
     operatingSystems: ow.optional.array.ofType(ow.string),
     devices: ow.optional.array.ofType(ow.string),
