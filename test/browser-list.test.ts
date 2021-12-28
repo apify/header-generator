@@ -1,6 +1,6 @@
 import browsersList from 'browserslist';
 
-import { getBrowsersFromQuery } from '../dist/utils';
+import { getBrowsersFromQuery } from '../src/utils';
 
 describe('browserList generation', () => {
     test('Should work with simple query', () => {

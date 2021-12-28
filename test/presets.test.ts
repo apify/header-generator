@@ -1,5 +1,5 @@
-import { HeaderGeneratorOptions } from '../dist/header-generator';
-import { HeaderGenerator, PRESETS } from '../dist/index';
+import { HeaderGeneratorOptions } from '../src/header-generator';
+import { HeaderGenerator, PRESETS } from '../src/index';
 
 describe('presets', () => {
     const generator = new HeaderGenerator();
