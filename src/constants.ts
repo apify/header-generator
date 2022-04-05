@@ -2,6 +2,7 @@ export const SUPPORTED_BROWSERS = [
     'chrome',
     'firefox',
     'safari',
+    'edge',
 ] as const;
 export const SUPPORTED_OPERATING_SYSTEMS = ['windows', 'macos', 'linux', 'android', 'ios'] as const;
 export const SUPPORTED_DEVICES = ['desktop', 'mobile'] as const;
