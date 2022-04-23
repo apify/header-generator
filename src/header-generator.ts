@@ -187,9 +187,11 @@ export class HeaderGenerator {
 
         const isChrome = generatedHttpAndBrowser.name === 'chrome';
         const isFirefox = generatedHttpAndBrowser.name === 'firefox';
+        const isEdge = generatedHttpAndBrowser.name === 'edge';
 
         const hasSecFetch = (isChrome && generatedHttpAndBrowser.version[0] >= 76)
-            || (isFirefox && generatedHttpAndBrowser.version[0] >= 90);
+            || (isFirefox && generatedHttpAndBrowser.version[0] >= 90)
+            || (isEdge && generatedHttpAndBrowser.version[0] >= 79);
 
         // Add fixed headers if needed
         if (hasSecFetch) {
