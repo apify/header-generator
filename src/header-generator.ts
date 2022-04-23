@@ -185,16 +185,20 @@ export class HeaderGenerator {
 
         generatedSample[acceptLanguageFieldName] = this._getAcceptLanguageField(headerOptions.locales);
 
+        const isChrome = generatedHttpAndBrowser.name === 'chrome';
+        const isFirefox = generatedHttpAndBrowser.name === 'firefox';
+        const isEdge = generatedHttpAndBrowser.name === 'edge';
+
+        const hasSecFetch = (isChrome && generatedHttpAndBrowser.version[0] >= 76)
+            || (isFirefox && generatedHttpAndBrowser.version[0] >= 90)
+            || (isEdge && generatedHttpAndBrowser.version[0] >= 79);
+
         // Add fixed headers if needed
-        if (generatedHttpAndBrowser.name === 'chrome') {
-            if (generatedHttpAndBrowser.version[0] >= 76) {
-                generatedSample[secFetchAttributeNames.site] = 'same-site';
-                generatedSample[secFetchAttributeNames.mode] = 'navigate';
-                generatedSample[secFetchAttributeNames.user] = '?1';
-                if (generatedHttpAndBrowser.version![0] >= 80) {
-                    generatedSample[secFetchAttributeNames.dest] = 'document';
-                }
-            }
+        if (hasSecFetch) {
+            generatedSample[secFetchAttributeNames.site] = 'same-site';
+            generatedSample[secFetchAttributeNames.mode] = 'navigate';
+            generatedSample[secFetchAttributeNames.user] = '?1';
+            generatedSample[secFetchAttributeNames.dest] = 'document';
         }
 
         for (const attribute of Object.keys(generatedSample)) {
