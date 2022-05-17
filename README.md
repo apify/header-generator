@@ -16,7 +16,7 @@ Run the `npm install header-generator` command. No further setup is needed after
 ## Usage
 To use the generator, you need to create an instance of the `HeaderGenerator` class which is exported from this package. Constructor of this class accepts a `HeaderGeneratorOptions` object, which can be used to globally specify what kind of headers you are looking for: 
 ```js
-const { HeaderGenerator } = require('header-generator');
+const HeaderGenerator = require('header-generator');
 let headerGenerator = new HeaderGenerator({
         browsers: [
             {name: "firefox", minVersion: 80},
