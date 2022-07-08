@@ -1,8 +1,8 @@
-# Header generator
+# (DEPRECATED) Header generator
 
 ---
 
-DEPRECATED: The `header-generator` package now lives in the [fingerprint-suite](https://github.com/apify/fingerprint-suite) repository. This repository is no longer actively maintained.
+**DEPRECATED** The `header-generator` package now lives in the [fingerprint-suite](https://github.com/apify/fingerprint-suite) repository. This repository is no longer actively maintained.
 
 ---
 
